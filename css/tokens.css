@@ -1,0 +1,32 @@
+:root {
+  --paper: #f7f5ef;
+  --paper-deep: #e7efe9;
+  --green: #173f35;
+  --green-soft: #2f5d50;
+  --ink: #2a2924;
+  --gold: #7a5700;
+  --gold-light: #c8a85d;
+  --white: #fff;
+  --danger: #7c1d1d;
+  --shadow: 0 14px 36px rgba(42, 41, 36, .12);
+  --font-body: "Noto Sans Devanagari", "Nirmala UI", system-ui, sans-serif;
+  --font-display: "Noto Serif Devanagari", "Kohinoor Devanagari", Georgia, serif;
+  --base-size: 20px;
+  --radius: 18px;
+  --tap: 48px;
+  --header-height: 88px;
+}
+
+html[data-text-size="compact"] { --base-size: 18px; }
+html[data-text-size="large"] { --base-size: 22px; }
+
+html[data-contrast="high"] {
+  --paper: #fff;
+  --paper-deep: #fff;
+  --green: #111;
+  --green-soft: #111;
+  --ink: #111;
+  --gold: #111;
+  --gold-light: #111;
+  --shadow: none;
+}

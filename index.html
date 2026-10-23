@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="A simple, accessible family tree for the Jeev family.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Jeev family — जीव वंशवृक्ष">
+  <meta property="og:description" content="Explore our family across generations.">
+  <meta property="og:image" content="img/og-family.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <title>Jeev family — जीव वंशवृक्ष</title>
+  <link rel="icon" href="img/logo.png" type="image/png">
+  <link rel="stylesheet" href="css/tokens.css?v=11">
+  <link rel="stylesheet" href="css/base.css?v=11">
+  <link rel="stylesheet" href="css/components.css?v=11">
+  <link rel="stylesheet" href="css/mobile.css?v=11">
+  <link rel="stylesheet" href="css/desktop.css?v=11">
+  <link rel="stylesheet" href="css/print.css?v=11" media="print">
+</head>
+<body>
+  <a class="skip-link" href="#app-main">Skip to family tree</a>
+  <header class="site-header">
+    <a class="brand" href="#/home" aria-label="Family tree home">
+      <img class="brand-logo" src="img/logo.png" alt="">
+      <span><strong id="family-title">Our family</strong><small id="family-summary">Loading family…</small></span>
+    </a>
+    <div class="header-tools">
+      <button id="language-toggle" class="language-toggle" type="button"><span data-label="language">Hindi</span></button>
+      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="display-settings">Aa<span class="sr-only">Display settings</span></button>
+    </div>
+    <div id="display-settings" class="header-actions" aria-label="Display settings">
+      <div class="text-size" aria-label="Text size">
+        <button type="button" data-text-size="compact" aria-label="Smaller text">A−</button>
+        <button type="button" data-text-size="default" aria-label="Default text">A</button>
+        <button type="button" data-text-size="large" aria-label="Larger text">A+</button>
+      </div>
+      <button id="contrast-toggle" type="button" aria-pressed="false"><span aria-hidden="true">◐</span><span data-label="contrast">High contrast</span></button>
+    </div>
+  </header>
+
+  <main id="app-main" tabindex="-1">
+    <div class="loading-state" role="status">
+      <img class="loading-logo" src="img/logo.png" alt="">
+      <p>Opening the family album…</p>
+    </div>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Page navigation">
+    <button id="back-button" type="button"><span aria-hidden="true">←</span> <span data-label="back">Back</span></button>
+    <a href="#/home"><span aria-hidden="true">⌂</span> <span data-label="home">Home</span></a>
+  </nav>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+  <script type="module" src="js/app.js?v=11"></script>
+</body>
+</html>

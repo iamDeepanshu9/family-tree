@@ -1,0 +1,20 @@
+{
+  "family": { "title": "Our family", "titleHindi": "जीव वंशवृक्ष", "rootId": "p1" },
+  "members": [
+    { "id": "p1", "name": "Ram Prasad", "nameHindi": "राम प्रसाद", "birthYear": 1938, "deathYear": 2012, "photo": "img/members/portrait.svg", "parentId": null, "order": 1, "bio": "The eldest remembered member of this family line.", "spouses": [{ "name": "Shanti Devi", "nameHindi": "शांति देवी", "birthYear": 1940, "deathYear": 2018, "photo": "img/members/portrait.svg" }] },
+    { "id": "p2", "name": "Mohan Kumar", "nameHindi": "मोहन कुमार", "birthYear": 1962, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p1", "order": 1, "spouses": [{ "name": "Sushila Devi", "nameHindi": "सुशीला देवी", "birthYear": 1965, "deathYear": null, "photo": "img/members/portrait.svg" }] },
+    { "id": "p3", "name": "Sohan Kumar", "nameHindi": "सोहन कुमार", "birthYear": 1965, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p1", "order": 2 },
+    { "id": "d1", "name": "Lata Sharma", "nameHindi": "लता शर्मा", "gender": "F", "birthYear": 1968, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p1", "order": 3 },
+    { "id": "p4", "name": "Rakesh Kumar", "nameHindi": "राकेश कुमार", "birthYear": 1985, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p2", "order": 1, "spouses": [{ "name": "Kavita Devi", "nameHindi": "कविता देवी", "birthYear": 1987, "deathYear": null, "photo": "img/members/portrait.svg" }] },
+    { "id": "p5", "name": "Dinesh Kumar", "nameHindi": "दिनेश कुमार", "birthYear": 1988, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p2", "order": 2 },
+    { "id": "d2", "name": "Neha Verma", "nameHindi": "नेहा वर्मा", "gender": "F", "birthYear": 1991, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p2", "order": 3 },
+    { "id": "p6", "name": "Mahesh Kumar", "nameHindi": "महेश कुमार", "birthYear": 1990, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p3", "order": 1 },
+    { "id": "p7", "name": "Nitesh Kumar", "nameHindi": "नितेश कुमार", "birthYear": 1993, "deathYear": null, "photo": null, "parentId": "p3", "order": 2 },
+    { "id": "p8", "name": "Arjun Kumar", "nameHindi": "अर्जुन कुमार", "birthYear": 2008, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p4", "order": 1 },
+    { "id": "p9", "name": "Karan Kumar", "nameHindi": "करण कुमार", "birthYear": 2011, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p4", "order": 2 },
+    { "id": "d3", "name": "Ananya Kumar", "nameHindi": "अनन्या कुमार", "gender": "F", "birthYear": 2013, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p4", "order": 3 },
+    { "id": "p10", "name": "Vivek Kumar", "nameHindi": "विवेक कुमार", "birthYear": 2010, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p5", "order": 1 },
+    { "id": "p11", "name": "Aman Kumar", "nameHindi": "अमन कुमार", "birthYear": 2014, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p6", "order": 1 },
+    { "id": "p12", "name": "Rohit Kumar", "nameHindi": "रोहित कुमार", "birthYear": 2016, "deathYear": null, "photo": "img/members/portrait.svg", "parentId": "p7", "order": 1 }
+  ]
+}
