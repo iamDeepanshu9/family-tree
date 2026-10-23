@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Family member portrait placeholder">
-  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f3e8cb"/><stop offset="1" stop-color="#d7bd79"/></linearGradient></defs>
-  <rect width="320" height="320" fill="url(#b)"/><circle cx="160" cy="122" r="62" fill="#335f52"/><path d="M47 320c10-87 54-132 113-132s103 45 113 132" fill="#173f35"/><path d="M103 118c16-16 34-26 57-26 24 0 42 10 58 26" fill="none" stroke="#fff8e8" stroke-width="9" stroke-linecap="round" opacity=".35"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" aria-label="Family member portrait placeholder" role="img" viewBox="0 0 320 320"><defs><linearGradient id="b" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f3e8cb"/><stop offset="1" stop-color="#d7bd79"/></linearGradient></defs><rect width="320" height="320" fill="url(#b)"/><circle cx="160" cy="122" r="62" fill="#335f52"/><path fill="#173f35" d="M47 320c10-87 54-132 113-132s103 45 113 132"/><path fill="none" stroke="#fff8e8" stroke-linecap="round" stroke-width="9" d="M103 118c16-16 34-26 57-26 24 0 42 10 58 26" opacity=".35"/></svg>
