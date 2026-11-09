@@ -41,10 +41,16 @@ export default async function handler(req, res) {
 
   // 4. Sanitize members for clean JSON storage (strip internal runtime properties like _index)
   function cleanMember(m) {
-    const { _index, ...clean } = m;
+    const clean = {};
+    for (const [k, v] of Object.entries(m)) {
+      if (!k.startsWith('_')) clean[k] = v;
+    }
     if (Array.isArray(clean.spouses)) {
       clean.spouses = clean.spouses.map(s => {
-        const { _index: sIdx, ...cleanSpouse } = s;
+        const cleanSpouse = {};
+        for (const [sk, sv] of Object.entries(s)) {
+          if (!sk.startsWith('_')) cleanSpouse[sk] = sv;
+        }
         return cleanSpouse;
       });
     }

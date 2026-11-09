@@ -82,10 +82,16 @@ test('validates spouse with bilingual names and deceased status', () => {
   assert.equal(result.value.members[1].spouses[0].isDeceased, true);
 });
 
-test('accepts members and spouses with _index without error', () => {
+test('accepts members and spouses with _index and private runtime keys without error', () => {
   const input = structuredClone(phaseOne);
   input.members[0]._index = 0;
+  input.members[0]._tempMeta = 'some-cache';
   input.members[1]._index = 1;
+  input.members[1].spouses = [{
+    name: 'Shrimati Sita',
+    _index: 0,
+    _runtimeKey: true
+  }];
   const result = validateFamily(input);
   assert.equal(result.errors.length, 0);
   assert.equal(result.value.members[0]._index, 0);

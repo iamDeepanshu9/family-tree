@@ -1113,6 +1113,29 @@ btnDeleteMember.addEventListener('click', () => {
    11. Save to Vercel Blob Cloud
    ========================================================================== */
 
+function stripInternalKeys(data) {
+  if (!data || !Array.isArray(data.members)) return data;
+  return {
+    family: data.family,
+    members: data.members.map(m => {
+      const clean = {};
+      for (const [k, v] of Object.entries(m)) {
+        if (!k.startsWith('_')) clean[k] = v;
+      }
+      if (Array.isArray(clean.spouses)) {
+        clean.spouses = clean.spouses.map(s => {
+          const cleanSpouse = {};
+          for (const [sk, sv] of Object.entries(s)) {
+            if (!sk.startsWith('_')) cleanSpouse[sk] = sv;
+          }
+          return cleanSpouse;
+        });
+      }
+      return clean;
+    })
+  };
+}
+
 async function saveToCloud() {
   if (!currentFamilyData) return;
 
@@ -1122,13 +1145,7 @@ async function saveToCloud() {
   btnBannerSave.textContent = 'Saving...';
 
   try {
-    const cleanFamilyData = {
-      family: currentFamilyData.family,
-      members: currentFamilyData.members.map(m => {
-        const { _index, ...clean } = m;
-        return clean;
-      })
-    };
+    const cleanFamilyData = stripInternalKeys(currentFamilyData);
 
     const res = await fetch('/api/members', {
       method: 'POST',
@@ -1175,7 +1192,8 @@ btnBannerDiscard.addEventListener('click', () => {
 
 btnDownloadBackup.addEventListener('click', () => {
   if (!currentFamilyData) return;
-  const jsonStr = JSON.stringify(currentFamilyData, null, 2);
+  const cleanData = stripInternalKeys(currentFamilyData);
+  const jsonStr = JSON.stringify(cleanData, null, 2);
   const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

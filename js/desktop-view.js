@@ -375,15 +375,24 @@ export function createDesktop(main, tree, prefs, announce) {
     state.scale = Math.max(0.1, state.scale / 1.2);
     translate();
   });
-  root.querySelector('[data-action="png"]').addEventListener('click', async button => {
+  root.querySelector('[data-action="png"]').addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    const originalText = btn.textContent;
     try {
-      button.currentTarget.disabled = true;
+      btn.disabled = true;
+      btn.textContent = '📸 Exporting HD...';
       const { exportTreeAsPng } = await import('./export.js');
-      await exportTreeAsPng(stage);
+      await exportTreeAsPng(stage, {
+        title: tree.family?.title || 'Jeev Family',
+        titleHindi: tree.family?.titleHindi || 'जीव वंशवृक्ष'
+      });
+      btn.textContent = '✓ Saved!';
+      setTimeout(() => { btn.textContent = originalText; }, 2000);
     } catch (error) {
       alert(error.message);
+      btn.textContent = originalText;
     } finally {
-      button.currentTarget.disabled = false;
+      btn.disabled = false;
     }
   });
 

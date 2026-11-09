@@ -31,12 +31,19 @@ export function verifyPhotoExists(photo) {
   return null;
 }
 
-function sanitizeFamilyData(data) {
+export function sanitizeFamilyData(data) {
   if (!data || !Array.isArray(data.members)) return data;
   data.members.forEach(m => {
+    // Strip private / runtime properties like _index before serving
+    for (const key of Object.keys(m)) {
+      if (key.startsWith('_')) delete m[key];
+    }
     m.photo = verifyPhotoExists(m.photo);
     if (Array.isArray(m.spouses)) {
       m.spouses.forEach(s => {
+        for (const key of Object.keys(s)) {
+          if (key.startsWith('_')) delete s[key];
+        }
         s.photo = verifyPhotoExists(s.photo);
       });
     }

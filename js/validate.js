@@ -39,7 +39,10 @@ export function validateFamily(raw) {
       errors.push(`Member ${index + 1} must be an object.`);
       return { id: `invalid-${index}`, name: "Invalid member", gender: "M", parentId: null, _index: index };
     }
-    for (const key of Object.keys(source)) if (!MEMBER_KEYS.has(key)) errors.push(`Member "${label}": field "${key}" is not supported.`);
+    for (const key of Object.keys(source)) {
+      if (key.startsWith('_')) continue; // Ignore private / internal runtime properties (e.g. _index)
+      if (!MEMBER_KEYS.has(key)) errors.push(`Member "${label}": field "${key}" is not supported.`);
+    }
     if (!source.id || typeof source.id !== "string") errors.push(`Member "${label}": id is required.`);
     else if (ids.has(source.id)) errors.push(`Member "${label}": id "${source.id}" is used more than once.`);
     else ids.add(source.id);
@@ -70,7 +73,10 @@ export function validateFamily(raw) {
         errors.push(`Member "${label}": spouse ${spouseIndex + 1} must be an object.`);
         return { name: "Invalid spouse" };
       }
-      for (const key of Object.keys(spouse)) if (!SPOUSE_KEYS.has(key)) errors.push(`Spouse "${spouseLabel}" under "${label}": field "${key}" is not supported.`);
+      for (const key of Object.keys(spouse)) {
+        if (key.startsWith('_')) continue; // Ignore private / internal runtime properties (e.g. _index)
+        if (!SPOUSE_KEYS.has(key)) errors.push(`Spouse "${spouseLabel}" under "${label}": field "${key}" is not supported.`);
+      }
       if (!spouse.name || typeof spouse.name !== "string") errors.push(`Member "${label}": spouse ${spouseIndex + 1} needs a name.`);
       if (spouse.dob !== undefined && !validDateValue(spouse.dob)) errors.push(`Spouse "${spouseLabel}" under "${label}": dob must be a valid date or year.`);
       if (spouse.dod !== undefined && !validDateValue(spouse.dod)) errors.push(`Spouse "${spouseLabel}" under "${label}": dod must be a valid date or year.`);

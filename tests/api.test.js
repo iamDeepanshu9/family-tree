@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createToken, verifyAuth, getAdminCredentials } from '../api/_utils.js';
 import transliterateHandler from '../api/transliterate.js';
-import { verifyPhotoExists } from '../api/family.js';
+import { verifyPhotoExists, sanitizeFamilyData } from '../api/family.js';
 
 test('creates valid HMAC signed admin token', () => {
   const token = createToken('admin');
@@ -91,5 +91,30 @@ test('verifyPhotoExists validates real files and cloud URLs, and purges missing 
   // Any non-existent file path (for any member ID) is normalized to null!
   assert.equal(verifyPhotoExists('img/members/random-ghost-photo.jpg'), null);
   assert.equal(verifyPhotoExists('img/members/g5-99.jpg'), null);
+});
+
+test('sanitizeFamilyData purges _index and private runtime fields from data', () => {
+  const mockData = {
+    family: { title: 'Test' },
+    members: [
+      {
+        id: 'p1',
+        name: 'Patriarch',
+        _index: 0,
+        _runtimeFlag: true,
+        photo: null,
+        spouses: [
+          { name: 'Matriarch', _index: 0, _cacheKey: 123 }
+        ]
+      }
+    ]
+  };
+
+  const sanitized = sanitizeFamilyData(mockData);
+  assert.equal(sanitized.members[0]._index, undefined);
+  assert.equal(sanitized.members[0]._runtimeFlag, undefined);
+  assert.equal(sanitized.members[0].spouses[0]._index, undefined);
+  assert.equal(sanitized.members[0].spouses[0]._cacheKey, undefined);
+  assert.equal(sanitized.members[0].name, 'Patriarch');
 });
 
