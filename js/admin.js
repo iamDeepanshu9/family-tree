@@ -162,14 +162,6 @@ async function loadFamilyData() {
       res = await fetch('./data/family.json', { cache: 'no-cache' });
     }
     const data = await res.json();
-    if (data && Array.isArray(data.members)) {
-      data.members.forEach(m => {
-        if (m.photo && m.photo.includes('g5-01.jpg')) m.photo = null;
-        (m.spouses || []).forEach(s => {
-          if (s.photo && s.photo.includes('g5-01.jpg')) s.photo = null;
-        });
-      });
-    }
     currentFamilyData = structuredClone(data);
     originalFamilyData = structuredClone(data);
     setUnsavedChanges(false);
@@ -250,7 +242,7 @@ function renderSidebarList() {
     item.onclick = () => selectMember(m.id);
 
     const initial = (m.name || m.nameHindi || '?').charAt(0);
-    const photoSrc = (m.photo && !m.photo.includes('g5-01.jpg')) ? m.photo : '';
+    const photoSrc = m.photo || '';
 
     item.innerHTML = `
       ${photoSrc ?
@@ -327,7 +319,7 @@ function selectMember(id) {
   inputDod.value = member.dod || '';
   checkDeceased.checked = !!member.isDeceased;
   inputBio.value = member.bio || '';
-  const photoVal = (member.photo && !member.photo.includes('g5-01.jpg')) ? member.photo : '';
+  const photoVal = member.photo || '';
   inputPhoto.value = photoVal;
 
   // Update photo preview

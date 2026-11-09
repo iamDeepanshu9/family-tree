@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createToken, verifyAuth, getAdminCredentials } from '../api/_utils.js';
 import transliterateHandler from '../api/transliterate.js';
+import { verifyPhotoExists } from '../api/family.js';
 
 test('creates valid HMAC signed admin token', () => {
   const token = createToken('admin');
@@ -71,5 +72,24 @@ test('transliterate API normalizes common honorifics', async () => {
   };
   await transliterateHandler(mockReq, mockRes);
   assert.ok(jsonResult.hindi.includes('स्वर्गीय') || jsonResult.hindi.includes('श्री'));
+});
+
+test('verifyPhotoExists validates real files and cloud URLs, and purges missing files', () => {
+  // Empty or invalid values
+  assert.equal(verifyPhotoExists(null), null);
+  assert.equal(verifyPhotoExists(''), null);
+  assert.equal(verifyPhotoExists('null'), null);
+  assert.equal(verifyPhotoExists('   '), null);
+
+  // Cloud URLs (Vercel Blob) are preserved
+  const blobUrl = 'https://abc.public.blob.vercel-storage.com/members/p1-xyz.jpg';
+  assert.equal(verifyPhotoExists(blobUrl), blobUrl);
+
+  // Real existing local file is preserved
+  assert.equal(verifyPhotoExists('img/members/g1-01.png'), 'img/members/g1-01.png');
+
+  // Any non-existent file path (for any member ID) is normalized to null!
+  assert.equal(verifyPhotoExists('img/members/random-ghost-photo.jpg'), null);
+  assert.equal(verifyPhotoExists('img/members/g5-99.jpg'), null);
 });
 

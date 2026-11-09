@@ -1,19 +1,45 @@
-import { promises as fs } from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 import { setCorsHeaders } from './_utils.js';
+
+/**
+ * Validates whether a photo path or URL is valid.
+ * - Cloud URLs (https://...) are preserved.
+ * - Local relative paths (img/members/...) are checked against disk:
+ *   if the file exists, it is kept; if missing, normalized to null.
+ */
+export function verifyPhotoExists(photo) {
+  if (!photo || typeof photo !== 'string') return null;
+  const trimmed = photo.trim();
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return null;
+
+  // Cloud URLs (Vercel Blob, CDN) are kept as-is
+  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+    return trimmed;
+  }
+
+  // Local relative file paths: verify file exists on server filesystem
+  try {
+    const fullPath = path.join(process.cwd(), trimmed.replace(/^\//, ''));
+    if (fs.existsSync(fullPath)) {
+      return trimmed;
+    }
+  } catch {
+    // If invalid path, fall through to null
+  }
+
+  return null;
+}
 
 function sanitizeFamilyData(data) {
   if (!data || !Array.isArray(data.members)) return data;
   data.members.forEach(m => {
-    // Clear any reference to the non-existent g5-01.jpg
-    if (m.photo && (m.photo.includes('g5-01.jpg') || m.photo.includes('g5-01.png'))) {
-      m.photo = null;
+    m.photo = verifyPhotoExists(m.photo);
+    if (Array.isArray(m.spouses)) {
+      m.spouses.forEach(s => {
+        s.photo = verifyPhotoExists(s.photo);
+      });
     }
-    (m.spouses || []).forEach(s => {
-      if (s.photo && (s.photo.includes('g5-01.jpg') || s.photo.includes('g5-01.png'))) {
-        s.photo = null;
-      }
-    });
   });
   return data;
 }
@@ -53,7 +79,7 @@ export default async function handler(req, res) {
   // 2. Fallback to local data/family.json
   try {
     const localPath = path.join(process.cwd(), 'data', 'family.json');
-    const content = await fs.readFile(localPath, 'utf8');
+    const content = await fs.promises.readFile(localPath, 'utf8');
     const rawData = JSON.parse(content);
     const data = sanitizeFamilyData(rawData);
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
