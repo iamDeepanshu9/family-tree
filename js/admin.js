@@ -566,22 +566,34 @@ async function uploadMemberPhoto() {
       })
     });
 
-    const data = await res.json();
-    if (res.ok && data.success) {
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+
+    if (res.ok && data?.success) {
       inputPhoto.value = data.url;
       updatePhotoPreview(data.url);
       uploadStatus.textContent = '✓ Uploaded to Vercel Blob!';
       uploadStatus.style.color = '#166534';
       btnUploadPhoto.disabled = true;
       pendingCompressedPhoto = null;
+      setUnsavedChanges(true);
       return data.url;
     } else {
-      uploadStatus.textContent = '✗ Upload failed: ' + (data.error || 'Server error');
+      if (res.status === 401) {
+        uploadStatus.textContent = '✗ Session expired. Please log in again.';
+      } else {
+        const errorMsg = data?.details || data?.error || `Upload failed (Status ${res.status})`;
+        uploadStatus.textContent = '✗ ' + errorMsg;
+      }
       uploadStatus.style.color = 'var(--danger)';
       btnUploadPhoto.disabled = false;
     }
   } catch (err) {
-    uploadStatus.textContent = '✗ Network error uploading image';
+    uploadStatus.textContent = '✗ Upload error: ' + err.message;
     uploadStatus.style.color = 'var(--danger)';
     btnUploadPhoto.disabled = false;
   }
@@ -913,8 +925,14 @@ window.uploadSpousePhoto = async function(idx) {
       })
     });
 
-    const data = await res.json();
-    if (res.ok && data.success) {
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+
+    if (res.ok && data?.success) {
       currentSpouses[idx].photo = data.url;
       thumb.src = data.url;
       if (urlInput) urlInput.value = data.url;
@@ -923,12 +941,17 @@ window.uploadSpousePhoto = async function(idx) {
       uploadBtn.disabled = true;
       setUnsavedChanges(true);
     } else {
-      statusEl.textContent = '✗ Upload failed: ' + (data.error || 'Server error');
+      if (res.status === 401) {
+        statusEl.textContent = '✗ Session expired. Please log in again.';
+      } else {
+        const errorMsg = data?.details || data?.error || `Upload failed (Status ${res.status})`;
+        statusEl.textContent = '✗ ' + errorMsg;
+      }
       statusEl.style.color = 'var(--danger)';
       uploadBtn.disabled = false;
     }
   } catch (err) {
-    statusEl.textContent = '✗ Network error';
+    statusEl.textContent = '✗ Upload error: ' + err.message;
     statusEl.style.color = 'var(--danger)';
     uploadBtn.disabled = false;
   }

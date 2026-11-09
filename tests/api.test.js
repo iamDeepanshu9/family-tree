@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createToken, verifyAuth, getAdminCredentials } from '../api/_utils.js';
+import { createToken, verifyAuth, getAdminCredentials, parseJsonBody } from '../api/_utils.js';
 import transliterateHandler from '../api/transliterate.js';
 import { verifyPhotoExists, sanitizeFamilyData } from '../api/family.js';
 
@@ -116,5 +116,35 @@ test('sanitizeFamilyData purges _index and private runtime fields from data', ()
   assert.equal(sanitized.members[0].spouses[0]._index, undefined);
   assert.equal(sanitized.members[0].spouses[0]._cacheKey, undefined);
   assert.equal(sanitized.members[0].name, 'Patriarch');
+});
+
+test('sanitizeFamilyData restores root patriarch G1-01 portrait if null or stripped', () => {
+  const mockData = {
+    family: { title: 'Test' },
+    members: [
+      { id: 'G1-01', name: 'Swargiya Shri Jeev', photo: null }
+    ]
+  };
+
+  const sanitized = sanitizeFamilyData(mockData);
+  assert.equal(sanitized.members[0].photo, 'img/members/g1-01.png');
+});
+
+test('parseJsonBody handles Buffers, objects, and JSON strings properly', async () => {
+  // 1. Buffer body
+  const bufReq = { body: Buffer.from(JSON.stringify({ filename: 'test.jpg', base64: 'abc123xyz' })) };
+  const res1 = await parseJsonBody(bufReq);
+  assert.equal(res1.filename, 'test.jpg');
+  assert.equal(res1.base64, 'abc123xyz');
+
+  // 2. Parsed object body
+  const objReq = { body: { ok: true } };
+  const res2 = await parseJsonBody(objReq);
+  assert.equal(res2.ok, true);
+
+  // 3. String body
+  const strReq = { body: JSON.stringify({ count: 42 }) };
+  const res3 = await parseJsonBody(strReq);
+  assert.equal(res3.count, 42);
 });
 

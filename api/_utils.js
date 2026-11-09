@@ -64,15 +64,26 @@ export function setCorsHeaders(res) {
 }
 
 export async function parseJsonBody(req) {
+  if (Buffer.isBuffer(req.body)) {
+    try { return JSON.parse(req.body.toString('utf8')); } catch { return null; }
+  }
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string') {
     try { return JSON.parse(req.body); } catch { return null; }
   }
+  if (req.readableEnded || req.complete) {
+    return null;
+  }
   return new Promise((resolve) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
     req.on('end', () => {
-      try { resolve(JSON.parse(data)); } catch { resolve(null); }
+      try {
+        const str = Buffer.concat(chunks).toString('utf8');
+        resolve(JSON.parse(str));
+      } catch {
+        resolve(null);
+      }
     });
     req.on('error', () => resolve(null));
   });

@@ -38,6 +38,7 @@ export default async function handler(req, res) {
     if (match) contentType = match[1];
     base64Data = base64Data.split(',')[1];
   }
+  base64Data = base64Data.replace(/\s/g, '');
 
   const buffer = Buffer.from(base64Data, 'base64');
 
@@ -78,7 +79,8 @@ export default async function handler(req, res) {
     const blob = await put(safePath, buffer, {
       access: 'public',
       contentType,
-      addRandomSuffix: true
+      addRandomSuffix: true,
+      token: process.env.BLOB_READ_WRITE_TOKEN
     });
 
     return res.status(200).json({

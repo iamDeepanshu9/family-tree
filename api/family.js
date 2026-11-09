@@ -3,10 +3,24 @@ import path from 'node:path';
 import { setCorsHeaders } from './_utils.js';
 
 /**
+ * Known committed local member portraits deployed on Vercel CDN.
+ * In Vercel Serverless Functions, static files in img/ are served from CDN edge
+ * rather than mounted to process.cwd(), so we explicitly whitelist committed assets.
+ */
+export const COMMITTED_LOCAL_PHOTOS = new Set([
+  'img/members/g1-01.png',
+  'img/members/g2-01.png',
+  'img/members/g2-01-s1.jpeg',
+  'img/members/g3-01.png',
+  'img/members/portrait.svg'
+]);
+
+/**
  * Validates whether a photo path or URL is valid.
  * - Cloud URLs (https://...) are preserved.
- * - Local relative paths (img/members/...) are checked against disk:
- *   if the file exists, it is kept; if missing, normalized to null.
+ * - Committed static portraits in img/members/ are preserved.
+ * - Local relative paths checked against disk (dev server fallback).
+ * - Non-existent ghost paths are normalized to null.
  */
 export function verifyPhotoExists(photo) {
   if (!photo || typeof photo !== 'string') return null;
@@ -18,11 +32,18 @@ export function verifyPhotoExists(photo) {
     return trimmed;
   }
 
-  // Local relative file paths: verify file exists on server filesystem
+  const normalized = trimmed.replace(/^\//, '');
+
+  // 1. Committed repository portraits (always present on Vercel CDN)
+  if (COMMITTED_LOCAL_PHOTOS.has(normalized)) {
+    return normalized;
+  }
+
+  // 2. Local relative file paths: verify file exists on server filesystem (local dev / bundled)
   try {
-    const fullPath = path.join(process.cwd(), trimmed.replace(/^\//, ''));
+    const fullPath = path.join(process.cwd(), normalized);
     if (fs.existsSync(fullPath)) {
-      return trimmed;
+      return normalized;
     }
   } catch {
     // If invalid path, fall through to null
@@ -38,6 +59,12 @@ export function sanitizeFamilyData(data) {
     for (const key of Object.keys(m)) {
       if (key.startsWith('_')) delete m[key];
     }
+
+    // Default root patriarch photo if missing or previously stripped
+    if (m.id === 'G1-01' && (!m.photo || m.photo === 'null')) {
+      m.photo = 'img/members/g1-01.png';
+    }
+
     m.photo = verifyPhotoExists(m.photo);
     if (Array.isArray(m.spouses)) {
       m.spouses.forEach(s => {
