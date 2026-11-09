@@ -527,16 +527,17 @@ photoFileInput.addEventListener('change', async (e) => {
 
     // Show preview immediately
     photoPreviewImg.src = prepared.dataUrl;
-
     compressionInfo.textContent = prepared.infoText;
-    btnUploadPhoto.disabled = false;
+
+    // Auto-upload immediately to Vercel Blob!
+    await uploadMemberPhoto();
   } catch (err) {
     compressionInfo.textContent = 'Error processing photo: ' + err.message;
   }
 });
 
-btnUploadPhoto.addEventListener('click', async () => {
-  if (!pendingCompressedPhoto) return;
+async function uploadMemberPhoto() {
+  if (!pendingCompressedPhoto) return null;
 
   btnUploadPhoto.disabled = true;
   uploadStatus.textContent = 'Uploading to Vercel Blob...';
@@ -566,6 +567,8 @@ btnUploadPhoto.addEventListener('click', async () => {
       uploadStatus.textContent = '✓ Uploaded to Vercel Blob!';
       uploadStatus.style.color = '#166534';
       btnUploadPhoto.disabled = true;
+      pendingCompressedPhoto = null;
+      return data.url;
     } else {
       uploadStatus.textContent = '✗ Upload failed: ' + (data.error || 'Server error');
       uploadStatus.style.color = 'var(--danger)';
@@ -576,7 +579,10 @@ btnUploadPhoto.addEventListener('click', async () => {
     uploadStatus.style.color = 'var(--danger)';
     btnUploadPhoto.disabled = false;
   }
-});
+  return null;
+}
+
+btnUploadPhoto.addEventListener('click', uploadMemberPhoto);
 
 inputPhoto.addEventListener('input', () => {
   updatePhotoPreview(inputPhoto.value.trim());
@@ -854,7 +860,7 @@ window.handleSpousePhotoSelect = async function(idx, input) {
   try {
     statusEl.textContent = 'Processing...';
     statusEl.style.color = 'var(--gold)';
-    uploadBtn.disabled = true;
+    if (uploadBtn) uploadBtn.disabled = true;
 
     const prepared = await preparePhotoForUpload(file);
     pendingSpousePhotos[idx] = prepared;
@@ -862,7 +868,9 @@ window.handleSpousePhotoSelect = async function(idx, input) {
     thumb.src = prepared.dataUrl;
     statusEl.textContent = prepared.infoText;
     statusEl.style.color = '#059669';
-    uploadBtn.disabled = false;
+
+    // Auto-upload spouse photo right away!
+    await window.uploadSpousePhoto(idx);
   } catch (err) {
     statusEl.textContent = 'Error: ' + err.message;
     statusEl.style.color = 'var(--danger)';
@@ -941,10 +949,18 @@ btnAddSpouse.addEventListener('click', () => {
    9. Applying Changes to In-Memory Tree
    ========================================================================== */
 
-memberForm.addEventListener('submit', (e) => {
+memberForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   editorAlert.className = 'alert-box';
   editorAlert.textContent = '';
+
+  // Auto-upload photo if still pending
+  if (pendingCompressedPhoto) {
+    const uploadedUrl = await uploadMemberPhoto();
+    if (uploadedUrl) {
+      inputPhoto.value = uploadedUrl;
+    }
+  }
 
   const id = inputId.value.trim();
   const name = inputName.value.trim();
