@@ -46,7 +46,8 @@ FamilyTree/
 │   ├── auth.js                  # Admin authentication & session verification
 │   ├── family.js                # Serves live family.json from Vercel Blob (fallback to data/family.json)
 │   ├── upload.js                # Uploads member portraits directly to Vercel Blob
-│   └── members.js               # Validates and writes updated family.json to Vercel Blob
+│   ├── members.js               # Validates and writes updated family.json to Vercel Blob
+│   └── transliterate.js         # Transliterates English names to Hindi Devanagari in real-time
 │
 ├── css/                         # Modular CSS stylesheets (breakpoint: 900px)
 │   ├── tokens.css               # Design tokens: palette (greens, golds, parchment), font scales, transitions

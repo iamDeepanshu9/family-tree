@@ -310,6 +310,7 @@ function selectMember(id) {
   inputId.readOnly = (member.id === currentFamilyData.family.rootId);
   inputName.value = member.name || '';
   inputNameHi.value = member.nameHindi || '';
+  userManuallyEditedMemberHindi = Boolean(member.nameHindi);
   selectGender.value = member.gender || 'M';
   selectParent.value = member.parentId || '';
   inputBranch.value = member.branch || '';
@@ -350,6 +351,61 @@ function updatePhotoPreview(url) {
   } else {
     photoPreviewImg.src = 'img/tree-emblem.svg';
   }
+}
+
+// Transliteration (English -> Hindi auto-fill)
+let memberTransliterateTimer = null;
+let userManuallyEditedMemberHindi = false;
+
+async function transliterateText(englishText) {
+  if (!englishText || !englishText.trim()) return '';
+  try {
+    const res = await fetch(`/api/transliterate?text=${encodeURIComponent(englishText.trim())}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.hindi || '';
+    }
+  } catch (err) {
+    console.warn('Transliteration failed:', err);
+  }
+  return '';
+}
+
+inputNameHi.addEventListener('input', () => {
+  userManuallyEditedMemberHindi = true;
+});
+
+inputName.addEventListener('input', () => {
+  const text = inputName.value.trim();
+  if (!text) {
+    if (!userManuallyEditedMemberHindi) inputNameHi.value = '';
+    return;
+  }
+
+  // Auto-fill Hindi if user hasn't typed their own custom Hindi name
+  if (!userManuallyEditedMemberHindi || !inputNameHi.value.trim()) {
+    clearTimeout(memberTransliterateTimer);
+    memberTransliterateTimer = setTimeout(async () => {
+      const hindi = await transliterateText(text);
+      if (hindi && (!userManuallyEditedMemberHindi || !inputNameHi.value.trim())) {
+        inputNameHi.value = hindi;
+      }
+    }, 320);
+  }
+});
+
+const btnTransliterateMember = document.getElementById('btn-transliterate-member');
+if (btnTransliterateMember) {
+  btnTransliterateMember.addEventListener('click', async () => {
+    const text = inputName.value.trim();
+    if (!text) return;
+    btnTransliterateMember.textContent = '...';
+    const hindi = await transliterateText(text);
+    if (hindi) {
+      inputNameHi.value = hindi;
+    }
+    btnTransliterateMember.textContent = '✨ Auto Hindi';
+  });
 }
 
 // Auto-check deceased when DOD is filled
@@ -426,6 +482,7 @@ btnAddMember.addEventListener('click', () => {
   inputId.readOnly = false;
   inputName.value = '';
   inputNameHi.value = '';
+  userManuallyEditedMemberHindi = false;
   selectGender.value = 'M';
   inputOrder.value = 1;
   inputDob.value = '';
@@ -652,11 +709,16 @@ function renderSpouses() {
       <div class="form-grid-2">
         <div class="form-group" style="margin-bottom: 10px;">
           <label style="font-size: 0.8rem;">Spouse English Name *</label>
-          <input type="text" value="${s.name || ''}" placeholder="e.g. Swargiya Shrimati Sita Devi" oninput="window.updateSpouse(${idx}, 'name', this.value)">
+          <input type="text" value="${s.name || ''}" placeholder="e.g. Swargiya Shrimati Sita Devi" oninput="window.handleSpouseNameInput(${idx}, this.value)">
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
-          <label style="font-size: 0.8rem;">Hindi Name (हिंदी नाम)</label>
-          <input type="text" value="${s.nameHindi || ''}" placeholder="e.g. स्वर्गीय श्रीमती सीता देवी" oninput="window.updateSpouse(${idx}, 'nameHindi', this.value)">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.8rem; margin: 0;">Hindi Name (हिंदी नाम)</label>
+            <button type="button" class="admin-btn admin-btn-secondary" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; color: var(--green); border-color: #ccc;" onclick="window.autoTranslateSpouse(${idx})">
+              ✨ Auto
+            </button>
+          </div>
+          <input type="text" id="spouse-name-hi-${idx}" value="${s.nameHindi || ''}" placeholder="e.g. स्वर्गीय श्रीमती सीता देवी" oninput="window.handleSpouseHindiInput(${idx}, this.value)">
         </div>
       </div>
 
@@ -714,6 +776,48 @@ window.removeSpouse = function(idx) {
   currentSpouses.splice(idx, 1);
   renderSpouses();
   setUnsavedChanges(true);
+};
+
+const spouseTransliterateTimers = {};
+const spouseManuallyEditedHindi = {};
+
+window.handleSpouseNameInput = function(idx, val) {
+  if (currentSpouses[idx]) {
+    currentSpouses[idx].name = val.trim();
+
+    const hiInput = document.getElementById(`spouse-name-hi-${idx}`);
+    if (!hiInput) return;
+
+    const currentHi = (hiInput.value || '').trim();
+    if (!spouseManuallyEditedHindi[idx] || !currentHi) {
+      clearTimeout(spouseTransliterateTimers[idx]);
+      spouseTransliterateTimers[idx] = setTimeout(async () => {
+        const hindi = await transliterateText(val.trim());
+        if (hindi && (!spouseManuallyEditedHindi[idx] || !hiInput.value.trim())) {
+          hiInput.value = hindi;
+          currentSpouses[idx].nameHindi = hindi;
+        }
+      }, 320);
+    }
+  }
+};
+
+window.handleSpouseHindiInput = function(idx, val) {
+  spouseManuallyEditedHindi[idx] = true;
+  window.updateSpouse(idx, 'nameHindi', val);
+};
+
+window.autoTranslateSpouse = async function(idx) {
+  if (currentSpouses[idx]) {
+    const engName = currentSpouses[idx].name || '';
+    if (!engName) return;
+    const hiInput = document.getElementById(`spouse-name-hi-${idx}`);
+    const hindi = await transliterateText(engName);
+    if (hindi && hiInput) {
+      hiInput.value = hindi;
+      currentSpouses[idx].nameHindi = hindi;
+    }
+  }
 };
 
 window.updateSpouse = function(idx, field, val) {

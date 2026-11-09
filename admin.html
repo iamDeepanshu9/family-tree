@@ -122,7 +122,12 @@
                 <input type="text" id="m-name" required placeholder="e.g. Swargiya Shri Ramesh">
               </div>
               <div class="form-group">
-                <label for="m-name-hi">Hindi Name (हिंदी नाम)</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label for="m-name-hi" style="margin-bottom: 0;">Hindi Name (हिंदी नाम)</label>
+                  <button type="button" id="btn-transliterate-member" class="admin-btn admin-btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; color: var(--green); border-color: #ccc;" title="Auto-translate English name to Hindi">
+                    ✨ Auto Hindi
+                  </button>
+                </div>
                 <input type="text" id="m-name-hi" placeholder="e.g. स्वर्गीय श्री रमेश">
               </div>
             </div>
