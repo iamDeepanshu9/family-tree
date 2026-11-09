@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Portal • जीव वंशवृक्ष</title>
+  <link rel="icon" type="image/png" href="img/logo.png">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <!-- Header -->
+  <header class="admin-header">
+    <a href="./" class="admin-brand">
+      <img src="img/logo.png" alt="Family Crest">
+      <div class="admin-title-group">
+        <h1>जीव वंशवृक्ष <span class="admin-badge">Admin</span></h1>
+      </div>
+    </a>
+    <div class="admin-header-actions" id="header-actions" style="display: none;">
+      <span id="stat-badge" style="font-size: 0.8rem; opacity: 0.85; margin-right: 6px;"></span>
+      <a href="./" target="_blank" class="admin-btn admin-btn-secondary" title="View live tree in a new tab">
+        🌳 Live Tree
+      </a>
+      <button type="button" id="btn-download-backup" class="admin-btn admin-btn-secondary" title="Download backup family.json">
+        📥 Backup JSON
+      </button>
+      <button type="button" id="btn-save-cloud" class="admin-btn admin-btn-primary" title="Save changes to Vercel Blob">
+        ☁️ Save to Cloud
+      </button>
+      <button type="button" id="btn-logout" class="admin-btn admin-btn-secondary" title="Sign out">
+        🚪 Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Unsaved Changes Banner -->
+  <div id="unsaved-banner" class="unsaved-banner hidden">
+    <span>⚠️ You have unsaved changes. Remember to save to Vercel Cloud! (असुरक्षित परिवर्तन मौजूद हैं)</span>
+    <div style="display: flex; gap: 8px;">
+      <button type="button" id="btn-banner-save" class="admin-btn admin-btn-primary" style="padding: 4px 12px; font-size: 0.8rem;">
+        ☁️ Save to Cloud Now
+      </button>
+      <button type="button" id="btn-banner-discard" class="admin-btn admin-btn-secondary" style="padding: 4px 10px; font-size: 0.8rem; color: #333; background: #e5e7eb;">
+        Discard
+      </button>
+    </div>
+  </div>
+
+  <!-- View 1: Login Screen -->
+  <main id="login-view" class="login-wrap">
+    <div class="login-card">
+      <img src="img/logo.png" alt="Crest" class="crest">
+      <h2>प्रशासन पोर्टल • Admin Login</h2>
+      <p>Enter your administrator credentials to manage family members and photos.</p>
+
+      <div id="login-alert" class="alert-box error"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-username">Admin ID</label>
+          <input type="text" id="login-username" required autocomplete="username" placeholder="e.g. admin">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <button type="submit" id="btn-login-submit" class="admin-btn admin-btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 8px;">
+          Login • प्रवेश करें
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- View 2: Main Admin Workspace -->
+  <div id="admin-workspace" class="admin-workspace" style="display: none;">
+
+    <!-- Left Sidebar: Member Directory -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-controls">
+        <button type="button" id="btn-add-member" class="admin-btn admin-btn-primary" style="width: 100%; padding: 10px; font-size: 0.95rem;">
+          + Add New Member (नया सदस्य जोड़ें)
+        </button>
+        <div class="member-search-box">
+          <input type="search" id="member-search" placeholder="🔍 Search by name or ID...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <select id="branch-filter" style="padding: 6px 10px; font-size: 0.82rem;">
+            <option value="">All Branches (सभी शाखाएं)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="sidebar-member-list" class="sidebar-member-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+    <!-- Right Pane: Member Editor -->
+    <main class="admin-editor">
+      <div class="editor-card">
+        <div class="editor-header">
+          <div>
+            <h2 id="editor-title">Edit Member</h2>
+            <small id="editor-subtitle" style="color: #666;"></small>
+          </div>
+          <span id="editor-gen-pill" class="admin-badge" style="background: var(--paper-deep); color: var(--green); font-size: 0.75rem;"></span>
+        </div>
+
+        <div id="editor-alert" class="alert-box"></div>
+
+        <form id="member-form">
+          <!-- Basic Info -->
+          <fieldset class="fieldset-box">
+            <legend>1. Identity & Names (मूल पहचान)</legend>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="m-name">English Name *</label>
+                <input type="text" id="m-name" required placeholder="e.g. Swargiya Shri Ramesh">
+              </div>
+              <div class="form-group">
+                <label for="m-name-hi">Hindi Name (हिंदी नाम)</label>
+                <input type="text" id="m-name-hi" placeholder="e.g. स्वर्गीय श्री रमेश">
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="m-id">Member ID *</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="m-id" required placeholder="e.g. G3-05">
+                  <button type="button" id="btn-auto-id" class="admin-btn admin-btn-secondary" style="color: var(--green); border-color: #ccc; font-size: 0.75rem; padding: 6px 10px;" title="Suggest Next Available ID">
+                    Auto
+                  </button>
+                </div>
+                <small>Unique ID (e.g. G1-01, G2-03, G3-08)</small>
+              </div>
+
+              <div class="form-group">
+                <label for="m-gender">Gender *</label>
+                <select id="m-gender" required>
+                  <option value="M">Male (पुरुष)</option>
+                  <option value="F">Female (महिला)</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Parentage & Lineage -->
+          <fieldset class="fieldset-box">
+            <legend>2. Lineage & Parentage (वंश एवं पिता)</legend>
+            <div class="form-group">
+              <label for="m-parent">Father / Parent (पिता का चयन करें) *</label>
+              <select id="m-parent" required>
+                <!-- Populated dynamically -->
+              </select>
+              <small>Phase 1 tree follows paternal lineage. Root ancestor has no parent.</small>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="m-branch">Branch Name (शाखा)</label>
+                <input type="text" id="m-branch" placeholder="e.g. Chetan Singh Branch">
+              </div>
+
+              <div class="form-group">
+                <label for="m-order">Sibling Order (जन्म क्रम)</label>
+                <input type="number" id="m-order" min="1" max="30" value="1" placeholder="1">
+                <small>Order among brothers/sisters (1 = eldest)</small>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Dates & Life -->
+          <fieldset class="fieldset-box">
+            <legend>3. Life & Dates (जीवन व तिथियां)</legend>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="m-dob">Date of Birth (DOB)</label>
+                <input type="text" id="m-dob" placeholder="YYYY or DD/MM/YYYY (e.g. 1954)">
+              </div>
+
+              <div class="form-group">
+                <label for="m-dod">Date of Death (DOD)</label>
+                <input type="text" id="m-dod" placeholder="YYYY or DD/MM/YYYY (leave empty if living)">
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+              <input type="checkbox" id="m-deceased" style="width: 18px; height: 18px; cursor: pointer;">
+              <label for="m-deceased" style="margin: 0; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                Deceased (स्वर्गीय)
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label for="m-bio">Bio / Notes (परिचय / विशेष विवरण)</label>
+              <textarea id="m-bio" rows="2" placeholder="Brief biographical notes, village info, achievements..."></textarea>
+            </div>
+          </fieldset>
+
+          <!-- Portrait Photo & Upload -->
+          <fieldset class="fieldset-box">
+            <legend>4. Portrait Photo (तस्वीर अपलोड • Vercel Blob)</legend>
+            <div class="photo-uploader-box">
+              <div class="photo-preview-wrap" id="photo-preview-wrap">
+                <img id="photo-preview-img" src="img/tree-emblem.svg" alt="Preview">
+              </div>
+
+              <div class="photo-upload-actions">
+                <div class="form-group" style="margin-bottom: 8px;">
+                  <label for="photo-file-input">Choose image from device:</label>
+                  <input type="file" id="photo-file-input" accept="image/*" style="font-size: 0.85rem; padding: 6px;">
+                  <small id="compression-info" style="color: #059669; font-weight: 600;"></small>
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <button type="button" id="btn-upload-photo" class="admin-btn admin-btn-primary" style="font-size: 0.82rem; padding: 6px 12px;" disabled>
+                    ☁️ Upload to Vercel Blob
+                  </button>
+                  <span id="upload-status" style="font-size: 0.8rem;"></span>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+                  <label for="m-photo" style="font-size: 0.75rem; color: #777;">Image URL / Path:</label>
+                  <input type="text" id="m-photo" placeholder="img/members/p1.jpg or https://...blob.vercel-storage.com/..." style="font-size: 0.82rem; padding: 6px 10px;">
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Spouses Section -->
+          <fieldset class="fieldset-box">
+            <legend>5. Spouses / Wives (जीवनसाथी)</legend>
+            <div id="spouses-container" class="spouses-list">
+              <!-- Rendered dynamically -->
+            </div>
+            <button type="button" id="btn-add-spouse" class="admin-btn admin-btn-secondary" style="color: var(--green); border-color: #ccc; margin-top: 10px; font-size: 0.82rem;">
+              + Add Spouse (+ जीवनसाथी जोड़ें)
+            </button>
+          </fieldset>
+
+          <!-- Form Actions -->
+          <div class="editor-actions">
+            <div style="display: flex; gap: 10px;">
+              <button type="submit" id="btn-save-member" class="admin-btn admin-btn-primary" style="padding: 10px 20px;">
+                ✓ Apply to Tree (सदस्य सुरक्षित करें)
+              </button>
+              <button type="button" id="btn-cancel-edit" class="admin-btn admin-btn-secondary" style="color: #444; border-color: #ccc;">
+                Cancel
+              </button>
+            </div>
+
+            <button type="button" id="btn-delete-member" class="admin-btn admin-btn-danger" style="display: none; padding: 10px 16px;">
+              🗑️ Delete Member
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- Admin Application Logic -->
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
+

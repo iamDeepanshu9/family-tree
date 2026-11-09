@@ -35,14 +35,24 @@ This file provides comprehensive context for AI assistants and automated coding 
 ```
 FamilyTree/
 ├── index.html                   # HTML entry point: header, layout shells, settings menu, ARIA live region
-├── package.json                 # Project configuration (scripts only; 0 dependencies)
+├── admin.html                   # Admin portal: login gate, member manager, photo upload, backup download
+├── vercel.json                  # Vercel deployment & rewrite configuration (/admin -> admin.html)
+├── package.json                 # Project configuration (scripts & @vercel/blob for serverless functions)
 ├── README.md                    # Human-facing introduction & testing instructions
 ├── AGENTS.md                    # AI context document (this file)
+│
+├── api/                         # Vercel Serverless Functions (ESM)
+│   ├── _utils.js                # Shared auth tokens, HMAC verification, JSON body parser
+│   ├── auth.js                  # Admin authentication & session verification
+│   ├── family.js                # Serves live family.json from Vercel Blob (fallback to data/family.json)
+│   ├── upload.js                # Uploads member portraits directly to Vercel Blob
+│   └── members.js               # Validates and writes updated family.json to Vercel Blob
 │
 ├── css/                         # Modular CSS stylesheets (breakpoint: 900px)
 │   ├── tokens.css               # Design tokens: palette (greens, golds, parchment), font scales, transitions
 │   ├── base.css                 # CSS reset, font declarations, skip links, base accessibility
 │   ├── components.css           # UI components: person cards, avatar markups, buttons, dialogs, badges
+│   ├── admin.css                # Admin portal styling: login card, explorer sidebar, editor form
 │   ├── mobile.css               # Mobile layout (<900px): home hero, list sections, viewer picker, search
 │   ├── desktop.css              # Desktop layout (>=900px): botanical masthead, canvas stage, toolbar, minimap, sidebar
 │   └── print.css                # Print & PDF export layout rules
@@ -54,6 +64,7 @@ FamilyTree/
 │
 ├── js/                          # Vanilla ES Modules (Native ESM)
 │   ├── app.js                   # Application coordinator: bootstrap, media queries, routing, preferences
+│   ├── admin.js                 # Admin coordinator: session auth, member CRUD, canvas image compression, Vercel Blob sync
 │   ├── data.js                  # Fetches data/family.json with error handling; invokes validation
 │   ├── validate.js              # Strict data validation: integrity, cycle detection, paternal rules
 │   ├── tree.js                  # Hierarchical tree builder, generation calculator, search indexing, lineage traversal
