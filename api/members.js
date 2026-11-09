@@ -39,16 +39,52 @@ export default async function handler(req, res) {
     });
   }
 
+  // 4. Sanitize members for clean JSON storage (strip internal runtime properties like _index)
+  function cleanMember(m) {
+    const { _index, ...clean } = m;
+    if (Array.isArray(clean.spouses)) {
+      clean.spouses = clean.spouses.map(s => {
+        const { _index: sIdx, ...cleanSpouse } = s;
+        return cleanSpouse;
+      });
+    }
+    return clean;
+  }
+
+  const cleanData = {
+    family: validation.value.family,
+    members: validation.value.members.map(cleanMember)
+  };
+  const jsonString = JSON.stringify(cleanData, null, 2);
+
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // Local dev fallback: save directly to data/family.json
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const fs = await import('node:fs/promises');
+        const path = await import('node:path');
+        const filePath = path.join(process.cwd(), 'data', 'family.json');
+        await fs.writeFile(filePath, jsonString, 'utf8');
+        return res.status(200).json({
+          success: true,
+          message: 'Saved to local data/family.json (local dev mode)',
+          url: 'data/family.json',
+          membersCount: cleanData.members.length,
+          warnings: validation.warnings
+        });
+      } catch (devErr) {
+        return res.status(500).json({ error: 'Local file save failed: ' + devErr.message });
+      }
+    }
+
     return res.status(500).json({
       error: 'Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN in your Vercel settings.'
     });
   }
 
-  // 4. Save to Vercel Blob
+  // 5. Save to Vercel Blob
   try {
     const { put } = await import('@vercel/blob');
-    const jsonString = JSON.stringify(validation.value, null, 2);
 
     const blob = await put('family.json', jsonString, {
       access: 'public',
@@ -60,7 +96,7 @@ export default async function handler(req, res) {
       success: true,
       message: 'Family data successfully updated and saved to Vercel Blob.',
       url: blob.url,
-      membersCount: validation.value.members.length,
+      membersCount: cleanData.members.length,
       warnings: validation.warnings
     });
   } catch (err) {

@@ -81,3 +81,12 @@ test('validates spouse with bilingual names and deceased status', () => {
   assert.equal(result.value.members[1].spouses[0].nameHindi, 'स्वर्गीय श्रीमती किशना देवी');
   assert.equal(result.value.members[1].spouses[0].isDeceased, true);
 });
+
+test('accepts members and spouses with _index without error', () => {
+  const input = structuredClone(phaseOne);
+  input.members[0]._index = 0;
+  input.members[1]._index = 1;
+  const result = validateFamily(input);
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.value.members[0]._index, 0);
+});

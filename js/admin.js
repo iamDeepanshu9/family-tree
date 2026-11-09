@@ -462,21 +462,19 @@ photoFileInput.addEventListener('change', async (e) => {
   if (!file) return;
 
   try {
-    compressionInfo.textContent = 'Compressing image...';
+    compressionInfo.textContent = 'Processing image...';
     btnUploadPhoto.disabled = true;
 
-    const compressed = await compressImage(file, 600, 600, 0.85);
-    pendingCompressedPhoto = compressed;
+    const prepared = await preparePhotoForUpload(file);
+    pendingCompressedPhoto = prepared;
 
     // Show preview immediately
-    photoPreviewImg.src = compressed.dataUrl;
+    photoPreviewImg.src = prepared.dataUrl;
 
-    const originalKb = Math.round(file.size / 1024);
-    const compressedKb = Math.round(compressed.byteSize / 1024);
-    compressionInfo.textContent = `Optimized: ${compressedKb} KB (reduced from ${originalKb} KB)`;
+    compressionInfo.textContent = prepared.infoText;
     btnUploadPhoto.disabled = false;
   } catch (err) {
-    compressionInfo.textContent = 'Error compressing photo: ' + err.message;
+    compressionInfo.textContent = 'Error processing photo: ' + err.message;
   }
 });
 
@@ -500,7 +498,7 @@ btnUploadPhoto.addEventListener('click', async () => {
       body: JSON.stringify({
         filename,
         base64: pendingCompressedPhoto.dataUrl,
-        contentType: 'image/jpeg'
+        contentType: pendingCompressedPhoto.contentType || 'image/jpeg'
       })
     });
 
@@ -526,6 +524,41 @@ btnUploadPhoto.addEventListener('click', async () => {
 inputPhoto.addEventListener('input', () => {
   updatePhotoPreview(inputPhoto.value.trim());
 });
+
+const ONE_MB = 1024 * 1024; // 1 MB threshold
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed reading file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// Only optimize if image is larger than 1 MB; otherwise keep original as-is
+async function preparePhotoForUpload(file) {
+  if (file.size > ONE_MB) {
+    const compressed = await compressImage(file, 1000, 1000, 0.85);
+    const originalMb = (file.size / ONE_MB).toFixed(1);
+    const compressedKb = Math.round(compressed.byteSize / 1024);
+    return {
+      dataUrl: compressed.dataUrl,
+      byteSize: compressed.byteSize,
+      infoText: `⚡ Optimized: ${compressedKb} KB (reduced from ${originalMb} MB)`,
+      contentType: 'image/jpeg'
+    };
+  } else {
+    const dataUrl = await readFileAsDataUrl(file);
+    const kb = Math.round(file.size / 1024);
+    return {
+      dataUrl,
+      byteSize: file.size,
+      infoText: `✓ Original size: ${kb} KB (under 1 MB — uncompressed)`,
+      contentType: file.type || 'image/jpeg'
+    };
+  }
+}
 
 // HTML5 Canvas image compressor
 function compressImage(file, maxWidth, maxHeight, quality) {
@@ -715,27 +748,26 @@ window.handleSpousePhotoSelect = async function(idx, input) {
   const thumb = document.getElementById(`spouse-photo-thumb-${idx}`);
 
   try {
-    statusEl.textContent = 'Compressing...';
+    statusEl.textContent = 'Processing...';
     statusEl.style.color = 'var(--gold)';
     uploadBtn.disabled = true;
 
-    const compressed = await compressImage(file, 600, 600, 0.85);
-    pendingSpousePhotos[idx] = compressed;
+    const prepared = await preparePhotoForUpload(file);
+    pendingSpousePhotos[idx] = prepared;
 
-    thumb.src = compressed.dataUrl;
-    const kb = Math.round(compressed.byteSize / 1024);
-    statusEl.textContent = `Optimized: ${kb} KB`;
+    thumb.src = prepared.dataUrl;
+    statusEl.textContent = prepared.infoText;
     statusEl.style.color = '#059669';
     uploadBtn.disabled = false;
   } catch (err) {
-    statusEl.textContent = 'Compression error';
+    statusEl.textContent = 'Error: ' + err.message;
     statusEl.style.color = 'var(--danger)';
   }
 };
 
 window.uploadSpousePhoto = async function(idx) {
-  const compressed = pendingSpousePhotos[idx];
-  if (!compressed) return;
+  const prepared = pendingSpousePhotos[idx];
+  if (!prepared) return;
 
   const uploadBtn = document.getElementById(`spouse-upload-btn-${idx}`);
   const statusEl = document.getElementById(`spouse-status-${idx}`);
@@ -758,8 +790,8 @@ window.uploadSpousePhoto = async function(idx) {
       },
       body: JSON.stringify({
         filename,
-        base64: compressed.dataUrl,
-        contentType: 'image/jpeg'
+        base64: prepared.dataUrl,
+        contentType: prepared.contentType || 'image/jpeg'
       })
     });
 
@@ -952,13 +984,21 @@ async function saveToCloud() {
   btnBannerSave.textContent = 'Saving...';
 
   try {
+    const cleanFamilyData = {
+      family: currentFamilyData.family,
+      members: currentFamilyData.members.map(m => {
+        const { _index, ...clean } = m;
+        return clean;
+      })
+    };
+
     const res = await fetch('/api/members', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ familyData: currentFamilyData })
+      body: JSON.stringify({ familyData: cleanFamilyData })
     });
 
     const data = await res.json();

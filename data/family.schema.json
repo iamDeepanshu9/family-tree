@@ -62,6 +62,7 @@
         "branch": { "type": "string" },
         "photo": { "type": ["string", "null"] },
         "bio": { "type": "string" },
+        "_index": { "type": "integer" },
         "spouses": { "type": "array", "items": { "$ref": "#/$defs/spouse" } }
       }
     }

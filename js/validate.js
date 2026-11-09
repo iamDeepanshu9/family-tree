@@ -1,7 +1,7 @@
 import { parseDate } from './i18n.js';
 
-const MEMBER_KEYS = new Set(["id", "name", "nameHindi", "gender", "parentId", "order", "dob", "dod", "birthYear", "deathYear", "photo", "bio", "branch", "isDeceased", "spouses"]);
-const SPOUSE_KEYS = new Set(["id", "name", "nameHindi", "gender", "dob", "dod", "birthYear", "deathYear", "photo", "bio", "isDeceased", "branch"]);
+const MEMBER_KEYS = new Set(["id", "name", "nameHindi", "gender", "parentId", "order", "dob", "dod", "birthYear", "deathYear", "photo", "bio", "branch", "isDeceased", "spouses", "_index"]);
+const SPOUSE_KEYS = new Set(["id", "name", "nameHindi", "gender", "dob", "dod", "birthYear", "deathYear", "photo", "bio", "isDeceased", "branch", "_index"]);
 
 function validYear(value) {
   return value == null || (Number.isInteger(value) && value >= 1000 && value <= 2200);
