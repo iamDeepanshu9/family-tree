@@ -343,13 +343,18 @@ function clearPhotoUploadControls() {
 }
 
 function updatePhotoPreview(url) {
-  if (url) {
+  if (url && url.trim() && url !== 'null') {
     photoPreviewImg.src = url;
     photoPreviewImg.onerror = () => {
       photoPreviewImg.src = 'img/tree-emblem.svg';
+      if (!pendingCompressedPhoto) {
+        compressionInfo.textContent = '⚠️ Image file not found on server (will show initials fallback).';
+        compressionInfo.style.color = '#b45309';
+      }
     };
   } else {
     photoPreviewImg.src = 'img/tree-emblem.svg';
+    photoPreviewImg.onerror = null;
   }
 }
 
@@ -973,7 +978,7 @@ memberForm.addEventListener('submit', async (e) => {
   const dod = inputDod.value.trim() || null;
   const isDeceased = checkDeceased.checked || !!dod;
   const bio = inputBio.value.trim();
-  const photo = inputPhoto.value.trim() || '';
+  const photo = (inputPhoto.value.trim() && inputPhoto.value.trim() !== 'null') ? inputPhoto.value.trim() : null;
 
   if (!id) {
     showEditorError('Member ID is required.');
@@ -994,7 +999,7 @@ memberForm.addEventListener('submit', async (e) => {
       dob: (s.dob && String(s.dob).trim()) ? String(s.dob).trim() : null,
       dod: (s.dod && String(s.dod).trim()) ? String(s.dod).trim() : null,
       isDeceased: Boolean(s.isDeceased || (s.dod && String(s.dod).trim())),
-      photo: s.photo ? s.photo.trim() : '',
+      photo: (s.photo && String(s.photo).trim() && String(s.photo).trim() !== 'null') ? String(s.photo).trim() : null,
       bio: s.bio ? s.bio.trim() : ''
     }))
     .filter(s => s.name || s.nameHindi);

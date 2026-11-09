@@ -6,8 +6,15 @@ export function initials(person, locale) {
 
 export function photoMarkup(person, locale, className = 'avatar', eager = false) {
   const fallback = `<span aria-hidden="true">${initials(person, locale)}</span>`;
-  if (!person.photo) return `<span class="${className}" aria-label="No photo available">${fallback}</span>`;
-  return `<span class="${className} has-photo"><img src="${person.photo}" alt="" width="320" height="320" loading="${eager ? 'eager' : 'lazy'}" decoding="async" onerror="this.remove();this.parentElement.classList.remove('has-photo');this.parentElement.classList.add('avatar-fallback')">${fallback}</span>`;
+  const photo = person?.photo && typeof person.photo === 'string' ? person.photo.trim() : '';
+
+  // If photo is missing, empty, or string "null", treat as empty with initials fallback
+  if (!photo || photo === 'null' || photo === 'undefined') {
+    return `<span class="${className}" aria-label="No photo available">${fallback}</span>`;
+  }
+
+  // If path exists but file returns 404, onerror seamlessly hides img and shows initials fallback
+  return `<span class="${className} has-photo"><img src="${photo}" alt="" width="320" height="320" loading="${eager ? 'eager' : 'lazy'}" decoding="async" onerror="this.style.display='none';this.parentElement.classList.remove('has-photo');">${fallback}</span>`;
 }
 
 export function personCard(person, locale, options = {}) {
