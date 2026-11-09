@@ -2,6 +2,22 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { setCorsHeaders } from './_utils.js';
 
+function sanitizeFamilyData(data) {
+  if (!data || !Array.isArray(data.members)) return data;
+  data.members.forEach(m => {
+    // Clear any reference to the non-existent g5-01.jpg
+    if (m.photo && (m.photo.includes('g5-01.jpg') || m.photo.includes('g5-01.png'))) {
+      m.photo = null;
+    }
+    (m.spouses || []).forEach(s => {
+      if (s.photo && (s.photo.includes('g5-01.jpg') || s.photo.includes('g5-01.png'))) {
+        s.photo = null;
+      }
+    });
+  });
+  return data;
+}
+
 export default async function handler(req, res) {
   setCorsHeaders(res);
 
@@ -23,7 +39,8 @@ export default async function handler(req, res) {
       if (targetBlob && targetBlob.url) {
         const blobRes = await fetch(targetBlob.url, { cache: 'no-store' });
         if (blobRes.ok) {
-          const data = await blobRes.json();
+          const rawData = await blobRes.json();
+          const data = sanitizeFamilyData(rawData);
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
           return res.status(200).json(data);
         }
@@ -37,7 +54,8 @@ export default async function handler(req, res) {
   try {
     const localPath = path.join(process.cwd(), 'data', 'family.json');
     const content = await fs.readFile(localPath, 'utf8');
-    const data = JSON.parse(content);
+    const rawData = JSON.parse(content);
+    const data = sanitizeFamilyData(rawData);
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.status(200).json(data);
   } catch (fsErr) {

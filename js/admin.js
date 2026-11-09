@@ -162,6 +162,14 @@ async function loadFamilyData() {
       res = await fetch('./data/family.json', { cache: 'no-cache' });
     }
     const data = await res.json();
+    if (data && Array.isArray(data.members)) {
+      data.members.forEach(m => {
+        if (m.photo && m.photo.includes('g5-01.jpg')) m.photo = null;
+        (m.spouses || []).forEach(s => {
+          if (s.photo && s.photo.includes('g5-01.jpg')) s.photo = null;
+        });
+      });
+    }
     currentFamilyData = structuredClone(data);
     originalFamilyData = structuredClone(data);
     setUnsavedChanges(false);
@@ -242,7 +250,7 @@ function renderSidebarList() {
     item.onclick = () => selectMember(m.id);
 
     const initial = (m.name || m.nameHindi || '?').charAt(0);
-    const photoSrc = m.photo || '';
+    const photoSrc = (m.photo && !m.photo.includes('g5-01.jpg')) ? m.photo : '';
 
     item.innerHTML = `
       ${photoSrc ?
@@ -319,10 +327,11 @@ function selectMember(id) {
   inputDod.value = member.dod || '';
   checkDeceased.checked = !!member.isDeceased;
   inputBio.value = member.bio || '';
-  inputPhoto.value = member.photo || '';
+  const photoVal = (member.photo && !member.photo.includes('g5-01.jpg')) ? member.photo : '';
+  inputPhoto.value = photoVal;
 
   // Update photo preview
-  updatePhotoPreview(member.photo);
+  updatePhotoPreview(photoVal);
   clearPhotoUploadControls();
 
   // Spouses
@@ -1055,8 +1064,20 @@ memberForm.addEventListener('submit', async (e) => {
   populateBranchFilter();
   updateHeaderStats();
 
-  editorAlert.className = 'alert-box success show';
-  editorAlert.textContent = '✓ Changes applied to tree. Click "Save to Cloud" to persist to Vercel Blob.';
+  // Automatically sync directly to Vercel Cloud
+  btnSaveMember.disabled = true;
+  btnSaveMember.textContent = 'Saving to Cloud...';
+  try {
+    await saveToCloud();
+    editorAlert.className = 'alert-box success show';
+    editorAlert.textContent = '✅ Member saved and synced to Vercel Cloud!';
+  } catch (err) {
+    editorAlert.className = 'alert-box error show';
+    editorAlert.textContent = 'Saved in memory, but cloud sync error: ' + err.message;
+  } finally {
+    btnSaveMember.disabled = false;
+    btnSaveMember.textContent = '✓ Apply to Tree (सदस्य सुरक्षित करें)';
+  }
 });
 
 function showEditorError(msg) {
