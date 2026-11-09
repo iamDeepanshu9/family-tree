@@ -424,27 +424,80 @@
 .spouses-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .spouse-item-card {
-  background: var(--paper);
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 12px;
+  background: #fbfaf7;
+  border: 1px solid #ddd6c8;
+  border-left: 4px solid var(--gold-light);
+  border-radius: 12px;
+  padding: 18px;
   position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
-.spouse-item-card .remove-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: none;
-  border: none;
-  color: var(--danger);
-  font-size: 1.1rem;
+.spouse-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #d5cfc0;
+}
+
+.spouse-header-row strong {
+  font-size: 0.95rem;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spouse-remove-btn {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.spouse-remove-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.spouse-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--paper-deep);
+  border: 1px solid #d0ded4;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.spouse-photo-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid var(--gold-light);
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.spouse-photo-controls {
+  flex: 1;
+  min-width: 200px;
 }
 
 /* Action footer */

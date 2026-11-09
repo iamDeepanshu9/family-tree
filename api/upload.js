@@ -31,6 +31,25 @@ export default async function handler(req, res) {
   }
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // Local dev fallback: save to local img/members/ if running locally
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const fs = await import('node:fs/promises');
+        const path = await import('node:path');
+        const dir = path.join(process.cwd(), 'img', 'members');
+        await fs.mkdir(dir, { recursive: true });
+        const filePath = path.join(dir, `${baseName}.${ext}`);
+        await fs.writeFile(filePath, buffer);
+        return res.status(200).json({
+          success: true,
+          url: `img/members/${baseName}.${ext}`,
+          pathname: `img/members/${baseName}.${ext}`
+        });
+      } catch (devErr) {
+        return res.status(500).json({ error: 'Local file save failed: ' + devErr.message });
+      }
+    }
+
     return res.status(500).json({
       error: 'Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN to your environment variables.'
     });

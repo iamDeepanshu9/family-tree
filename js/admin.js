@@ -326,7 +326,7 @@ function selectMember(id) {
 
   // Spouses
   currentSpouses = structuredClone(member.spouses || []);
-  renderSpouses();
+  updateSpouseSectionVisibility();
 
   btnDeleteMember.style.display = (member.id === currentFamilyData.family.rootId) ? 'none' : 'inline-flex';
 
@@ -438,7 +438,7 @@ btnAddMember.addEventListener('click', () => {
   clearPhotoUploadControls();
 
   currentSpouses = [];
-  renderSpouses();
+  updateSpouseSectionVisibility();
 
   btnDeleteMember.style.display = 'none';
   renderSidebarList();
@@ -565,43 +565,114 @@ function compressImage(file, maxWidth, maxHeight, quality) {
   });
 }
 
+// Hide spouses for female members (Phase 1 paternal tree rule)
+function updateSpouseSectionVisibility() {
+  const isFemale = selectGender.value === 'F';
+  const spouseFieldset = spousesContainer.closest('fieldset');
+  if (spouseFieldset) {
+    if (isFemale) {
+      spousesContainer.innerHTML = '<div style="font-size: 0.85rem; color: #888; padding: 8px 0;">In Phase 1 paternal tree, spouses are linked to male lineage members.</div>';
+      btnAddSpouse.style.display = 'none';
+    } else {
+      btnAddSpouse.style.display = 'inline-flex';
+      renderSpouses();
+    }
+  }
+}
+
+selectGender.addEventListener('change', updateSpouseSectionVisibility);
+
 /* ==========================================================================
-   8. Spouses Management
+   8. Spouses Management (Full Details & Photo Upload)
    ========================================================================== */
 
+const pendingSpousePhotos = {};
+
 function renderSpouses() {
+  if (selectGender.value === 'F') return;
+
   spousesContainer.innerHTML = '';
   if (currentSpouses.length === 0) {
-    spousesContainer.innerHTML = '<div style="font-size: 0.82rem; color: #777;">No spouses recorded.</div>';
+    spousesContainer.innerHTML = '<div style="font-size: 0.85rem; color: #777; padding: 6px 0;">No spouses recorded. Click "+ Add Spouse" below to add a wife/spouse.</div>';
     return;
   }
+
+  const memberId = inputId.value.trim() || 'member';
 
   currentSpouses.forEach((s, idx) => {
     const card = document.createElement('div');
     card.className = 'spouse-item-card';
+
+    const spouseId = s.id || `${memberId}-s${idx + 1}`;
+    const photoUrl = s.photo || '';
+    const displayName = s.name || s.nameHindi || `Spouse #${idx + 1}`;
+
     card.innerHTML = `
-      <button type="button" class="remove-btn" title="Remove spouse" onclick="window.removeSpouse(${idx})">×</button>
+      <div class="spouse-header-row">
+        <strong>💍 ${displayName} <span style="font-size: 0.75rem; color: #777; font-weight: normal;">(${spouseId})</span></strong>
+        <button type="button" class="spouse-remove-btn" title="Remove this spouse" onclick="window.removeSpouse(${idx})">
+          ✕ Remove
+        </button>
+      </div>
+
+      <!-- Identity & Names -->
       <div class="form-grid-2">
-        <div class="form-group" style="margin-bottom: 8px;">
-          <label style="font-size: 0.78rem;">Spouse English Name</label>
-          <input type="text" value="${s.name || ''}" placeholder="e.g. Shrimati Sita Devi" onchange="window.updateSpouse(${idx}, 'name', this.value)">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="font-size: 0.8rem;">Spouse English Name *</label>
+          <input type="text" value="${s.name || ''}" placeholder="e.g. Swargiya Shrimati Sita Devi" oninput="window.updateSpouse(${idx}, 'name', this.value)">
         </div>
-        <div class="form-group" style="margin-bottom: 8px;">
-          <label style="font-size: 0.78rem;">Hindi Name</label>
-          <input type="text" value="${s.nameHindi || ''}" placeholder="e.g. श्रीमती सीता देवी" onchange="window.updateSpouse(${idx}, 'nameHindi', this.value)">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="font-size: 0.8rem;">Hindi Name (हिंदी नाम)</label>
+          <input type="text" value="${s.nameHindi || ''}" placeholder="e.g. स्वर्गीय श्रीमती सीता देवी" oninput="window.updateSpouse(${idx}, 'nameHindi', this.value)">
         </div>
       </div>
+
+      <!-- Dates & Life -->
       <div class="form-grid-2">
-        <div class="form-group" style="margin-bottom: 0;">
-          <label style="font-size: 0.78rem;">DOD (if deceased)</label>
-          <input type="text" value="${s.dod || ''}" placeholder="YYYY or DD/MM/YYYY" onchange="window.updateSpouse(${idx}, 'dod', this.value)">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="font-size: 0.8rem;">Date of Birth (DOB)</label>
+          <input type="text" value="${s.dob || ''}" placeholder="YYYY or DD/MM/YYYY (e.g. 1958)" oninput="window.updateSpouse(${idx}, 'dob', this.value)">
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label style="font-size: 0.78rem;">Photo URL</label>
-          <input type="text" value="${s.photo || ''}" placeholder="img/... or https://..." onchange="window.updateSpouse(${idx}, 'photo', this.value)">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="font-size: 0.8rem;">Date of Death (DOD)</label>
+          <input type="text" value="${s.dod || ''}" placeholder="YYYY or DD/MM/YYYY (leave empty if living)" oninput="window.updateSpouse(${idx}, 'dod', this.value)">
         </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <input type="checkbox" id="spouse-dec-${idx}" ${s.isDeceased ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;" onchange="window.updateSpouse(${idx}, 'isDeceased', this.checked)">
+        <label for="spouse-dec-${idx}" style="font-size: 0.82rem; font-weight: 600; cursor: pointer; margin: 0;">
+          Deceased (स्वर्गीय)
+        </label>
+      </div>
+
+      <!-- Photo Upload Box -->
+      <div class="spouse-photo-row">
+        <img id="spouse-photo-thumb-${idx}" class="spouse-photo-thumb" src="${photoUrl || 'img/tree-emblem.svg'}" alt="Spouse Photo" onerror="this.src='img/tree-emblem.svg'">
+        <div class="spouse-photo-controls">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--green); margin-bottom: 4px;">
+            Spouse Photo (तस्वीर अपलोड • Vercel Blob):
+          </label>
+          <input type="file" accept="image/*" id="spouse-file-${idx}" style="font-size: 0.78rem; padding: 4px;" onchange="window.handleSpousePhotoSelect(${idx}, this)">
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+            <button type="button" id="spouse-upload-btn-${idx}" class="admin-btn admin-btn-primary" style="font-size: 0.75rem; padding: 4px 10px;" disabled onclick="window.uploadSpousePhoto(${idx})">
+              ☁️ Upload to Vercel Blob
+            </button>
+            <span id="spouse-status-${idx}" style="font-size: 0.75rem;"></span>
+          </div>
+          <div style="margin-top: 6px;">
+            <input type="text" id="spouse-photo-url-${idx}" value="${photoUrl}" placeholder="Image URL / Path" style="font-size: 0.78rem; padding: 4px 8px; width: 100%;" oninput="window.updateSpousePhotoUrl(${idx}, this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bio / Notes -->
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 0.78rem;">Bio / Village Notes (मायका / विशेष परिचय)</label>
+        <textarea rows="1" placeholder="Maiden village, gotra, family notes..." oninput="window.updateSpouse(${idx}, 'bio', this.value)">${s.bio || ''}</textarea>
       </div>
     `;
+
     spousesContainer.appendChild(card);
   });
 }
@@ -609,19 +680,115 @@ function renderSpouses() {
 window.removeSpouse = function(idx) {
   currentSpouses.splice(idx, 1);
   renderSpouses();
+  setUnsavedChanges(true);
 };
 
 window.updateSpouse = function(idx, field, val) {
   if (currentSpouses[idx]) {
-    currentSpouses[idx][field] = val.trim();
-    if (field === 'dod' && val.trim()) {
-      currentSpouses[idx].isDeceased = true;
+    if (field === 'isDeceased') {
+      currentSpouses[idx].isDeceased = Boolean(val);
+    } else {
+      currentSpouses[idx][field] = (typeof val === 'string') ? val.trim() : val;
+      if (field === 'dod' && val && val.trim()) {
+        currentSpouses[idx].isDeceased = true;
+        const decCheck = document.getElementById(`spouse-dec-${idx}`);
+        if (decCheck) decCheck.checked = true;
+      }
     }
   }
 };
 
+window.updateSpousePhotoUrl = function(idx, val) {
+  if (currentSpouses[idx]) {
+    currentSpouses[idx].photo = val.trim();
+    const thumb = document.getElementById(`spouse-photo-thumb-${idx}`);
+    if (thumb) thumb.src = val.trim() || 'img/tree-emblem.svg';
+  }
+};
+
+window.handleSpousePhotoSelect = async function(idx, input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById(`spouse-status-${idx}`);
+  const uploadBtn = document.getElementById(`spouse-upload-btn-${idx}`);
+  const thumb = document.getElementById(`spouse-photo-thumb-${idx}`);
+
+  try {
+    statusEl.textContent = 'Compressing...';
+    statusEl.style.color = 'var(--gold)';
+    uploadBtn.disabled = true;
+
+    const compressed = await compressImage(file, 600, 600, 0.85);
+    pendingSpousePhotos[idx] = compressed;
+
+    thumb.src = compressed.dataUrl;
+    const kb = Math.round(compressed.byteSize / 1024);
+    statusEl.textContent = `Optimized: ${kb} KB`;
+    statusEl.style.color = '#059669';
+    uploadBtn.disabled = false;
+  } catch (err) {
+    statusEl.textContent = 'Compression error';
+    statusEl.style.color = 'var(--danger)';
+  }
+};
+
+window.uploadSpousePhoto = async function(idx) {
+  const compressed = pendingSpousePhotos[idx];
+  if (!compressed) return;
+
+  const uploadBtn = document.getElementById(`spouse-upload-btn-${idx}`);
+  const statusEl = document.getElementById(`spouse-status-${idx}`);
+  const thumb = document.getElementById(`spouse-photo-thumb-${idx}`);
+  const urlInput = document.getElementById(`spouse-photo-url-${idx}`);
+
+  uploadBtn.disabled = true;
+  statusEl.textContent = 'Uploading to Vercel Blob...';
+  statusEl.style.color = 'var(--gold)';
+
+  const memberId = inputId.value.trim().toLowerCase() || 'member';
+  const filename = `${memberId}-s${idx + 1}.jpg`;
+
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        filename,
+        base64: compressed.dataUrl,
+        contentType: 'image/jpeg'
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      currentSpouses[idx].photo = data.url;
+      thumb.src = data.url;
+      if (urlInput) urlInput.value = data.url;
+      statusEl.textContent = '✓ Uploaded!';
+      statusEl.style.color = '#166534';
+      uploadBtn.disabled = true;
+      setUnsavedChanges(true);
+    } else {
+      statusEl.textContent = '✗ Upload failed: ' + (data.error || 'Server error');
+      statusEl.style.color = 'var(--danger)';
+      uploadBtn.disabled = false;
+    }
+  } catch (err) {
+    statusEl.textContent = '✗ Network error';
+    statusEl.style.color = 'var(--danger)';
+    uploadBtn.disabled = false;
+  }
+};
+
 btnAddSpouse.addEventListener('click', () => {
+  const memberId = inputId.value.trim() || 'member';
+  const spouseNum = currentSpouses.length + 1;
   currentSpouses.push({
+    id: `${memberId}-s${spouseNum}`,
     name: '',
     nameHindi: '',
     gender: 'F',
@@ -665,6 +832,21 @@ memberForm.addEventListener('submit', (e) => {
     return;
   }
 
+  // Sanitize spouses (clean dates, ensure id, ignore empty drafts)
+  const cleanSpouses = (gender === 'F') ? [] : currentSpouses
+    .map((s, idx) => ({
+      id: s.id || `${id}-s${idx + 1}`,
+      name: s.name ? s.name.trim() : '',
+      nameHindi: s.nameHindi ? s.nameHindi.trim() : '',
+      gender: 'F',
+      dob: (s.dob && String(s.dob).trim()) ? String(s.dob).trim() : null,
+      dod: (s.dod && String(s.dod).trim()) ? String(s.dod).trim() : null,
+      isDeceased: Boolean(s.isDeceased || (s.dod && String(s.dod).trim())),
+      photo: s.photo ? s.photo.trim() : '',
+      bio: s.bio ? s.bio.trim() : ''
+    }))
+    .filter(s => s.name || s.nameHindi);
+
   // Construct draft member
   const draftMember = {
     id,
@@ -679,7 +861,7 @@ memberForm.addEventListener('submit', (e) => {
     isDeceased,
     bio,
     photo,
-    spouses: currentSpouses
+    spouses: cleanSpouses
   };
 
   // Clone family data and test validation
