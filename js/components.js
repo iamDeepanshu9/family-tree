@@ -12,7 +12,7 @@ export function photoMarkup(person, locale, className = 'avatar', eager = false)
 
 export function personCard(person, locale, options = {}) {
   const alt = alternateName(person, locale);
-  const date = years(person);
+  const date = years(person, locale);
   return `<button class="person-card" type="button" data-person-id="${person.id}">
     ${photoMarkup(person, locale, 'person-card__photo')}
     <span><span class="person-card__name">${displayName(person, locale)}</span>${alt ? `<span class="person-card__alt" lang="hi">${alt}</span>` : ''}${date ? `<span class="person-card__years">${date}</span>` : ''}${person.branch && options.showBranch && locale !== 'hi' ? `<span class="person-card__branch">${person.branch.replace(/ Branch$/, '')}</span>` : ''}${isDeceased(person) ? `<span class="memory-label">${options.memoryLabel || ''}</span>` : ''}</span>
@@ -20,5 +20,9 @@ export function personCard(person, locale, options = {}) {
 }
 
 export function bindPersonLinks(container, callback) {
-  container.querySelectorAll('[data-person-id]').forEach(element => element.addEventListener('click', event => { event.stopPropagation(); callback(element.dataset.personId); }));
+  container.querySelectorAll('[data-person-id]').forEach(element => element.addEventListener('click', event => {
+    event.stopPropagation();
+    const id = element.dataset.personId;
+    if (id && id !== 'undefined') callback(id);
+  }));
 }

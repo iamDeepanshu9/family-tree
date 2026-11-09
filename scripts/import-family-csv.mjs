@@ -22,9 +22,9 @@ function parseCsv(text) {
   return rows.filter(values => values.some(Boolean)).map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] || ''])));
 }
 
-function year(value) {
-  const match = String(value || '').match(/(?:18|19|20)\d{2}/);
-  return match ? Number(match[0]) : null;
+function cleanDate(value) {
+  const trimmed = String(value || '').trim();
+  return trimmed || null;
 }
 
 function spouseList(value) {
@@ -59,8 +59,8 @@ for (const record of records) {
     order,
     branch: record['Family Branch'].trim() || undefined,
     isDeceased: record['Life Status'].trim().toLowerCase() === 'late',
-    birthYear: year(record.DOB),
-    deathYear: year(record.DOD),
+    dob: cleanDate(record.DOB),
+    dod: cleanDate(record.DOD),
     photo,
     bio: record.Notes.trim(),
     spouses: spouseList(record['Spouse Name'])

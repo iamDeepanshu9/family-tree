@@ -49,3 +49,8 @@ The tests cover validation, ordering and generations, relationship terms, search
 ## Five-minute elder test
 
 Without explaining the interface, ask someone to identify the oldest ancestor, choose themselves, find their grandfather's brother, return Home, search in Hindi or English, enlarge the text, and open the full-tree outline. Note hesitation, repeated taps, unreadable labels, and any relationship term that causes confusion.
+
+## AI & Contributor Context
+
+See [`AGENTS.md`](AGENTS.md) for architecture, file map, data invariants, kinship derivation logic, and development conventions.
+

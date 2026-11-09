@@ -44,7 +44,11 @@ h3 { font-size: 1.08rem; }
 .brand strong { overflow: hidden; font-family: var(--font-display); font-size: 1.08rem; text-overflow: ellipsis; white-space: nowrap; }
 .brand small { font-size: .72rem; opacity: .88; }
 .header-tools { display: flex; align-items: center; gap: 8px; }
+.fullscreen-toggle { display: none; }
 .language-toggle { min-width: 72px; min-height: var(--tap); padding: 8px 12px; border: 1px solid rgba(255,255,255,.58); border-radius: 12px; color: inherit; background: transparent; font-weight: 800; }
+.display-settings-menu { position: relative; }
+.display-settings-menu > summary { list-style: none; cursor: pointer; }
+.display-settings-menu > summary::-webkit-details-marker { display: none; }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 .settings-toggle { display: none; }
 .header-actions button, .text-size { min-height: var(--tap); border: 1px solid rgba(255,255,255,.55); border-radius: 12px; background: transparent; color: inherit; }
@@ -70,8 +74,7 @@ h3 { font-size: 1.08rem; }
   .brand small { display: block; font-size: .65rem; }
   .settings-toggle { display: grid; place-items: center; min-width: 50px; min-height: 50px; border: 1px solid rgba(255,255,255,.58); border-radius: 14px; color: var(--paper); background: transparent; font-weight: 800; }
   .language-toggle { min-width: 66px; min-height: 50px; border-radius: 14px; }
-  .header-actions { display: none; position: absolute; z-index: 120; top: 64px; right: 12px; width: min(330px, calc(100vw - 24px)); padding: 12px; flex-wrap: wrap; border: 1px solid var(--gold-light); border-radius: 16px; color: var(--green); background: var(--white); box-shadow: var(--shadow); }
-  .header-actions.is-open { display: flex; }
+  .header-actions { position: absolute; z-index: 120; top: 58px; right: 0; width: min(330px, calc(100vw - 24px)); padding: 12px; flex-wrap: wrap; border: 1px solid var(--gold-light); border-radius: 16px; color: var(--green); background: var(--white); box-shadow: var(--shadow); }
   .header-actions > button { flex: 1; justify-content: center; color: var(--green); border-color: rgba(23,63,53,.35); }
   .text-size { width: 100%; color: var(--green); border-color: rgba(23,63,53,.35); }
   .text-size button { flex: 1; color: var(--green); }

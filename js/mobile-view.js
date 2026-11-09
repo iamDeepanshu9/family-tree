@@ -1,4 +1,5 @@
 import { COPY, alternateName, displayName, isDeceased, parentRelation, years } from './i18n.js';
+import { getRelation } from './relations.js';
 import { bindPersonLinks, personCard, photoMarkup } from './components.js';
 import { searchMembers } from './tree.js';
 import { go } from './router.js';
@@ -17,7 +18,7 @@ export function renderMobileHome(main, tree, prefs) {
     <section class="home-hero" aria-labelledby="home-title">
       ${photoMarkup(root, prefs.locale, 'hero-photo', true)}
       <div class="home-hero__copy"><small>${prefs.locale === 'hi' ? 'मूल पूर्वज' : 'Root ancestor'}</small><h1 id="home-title" tabindex="-1">${displayName(root, prefs.locale)}</h1>
-      ${alt ? `<p class="alt-name">${alt}</p>` : ''}${years(root) ? `<p>${years(root)}</p>` : ''}
+      ${alt ? `<p class="alt-name">${alt}</p>` : ''}${years(root, prefs.locale) ? `<p>${years(root, prefs.locale)}</p>` : ''}
       ${isDeceased(root) ? `<p class="memory-label">${t.lovingMemory}</p>` : ''}</div>
     </section>
     <div class="home-actions"><a class="button" href="#/search">⌕ ${t.search}</a><a class="button secondary" href="#/tree">☷ ${t.fullTree}</a></div>
@@ -29,26 +30,36 @@ export function renderMobileHome(main, tree, prefs) {
 }
 
 export function renderMobilePerson(main, tree, prefs, id) {
-  const t = COPY[prefs.locale]; const person = tree.byId.get(id) || tree.root; const father = tree.byId.get(person.parentId);
+  const t = COPY[prefs.locale];
+  const person = tree.byId.get(id) || tree.root;
+  const isSpouse = Boolean(person.spouseOf);
+  const husband = isSpouse ? (person.husband || tree.byId.get(person.spouseOf)) : null;
+  const father = isSpouse ? null : tree.byId.get(person.parentId);
   const siblings = father ? father.children.filter(item => item.id !== person.id) : [];
-  const brothers = siblings.filter(item => item.gender !== 'F'); const sisters = siblings.filter(item => item.gender === 'F');
-  const sons = person.children.filter(item => item.gender !== 'F'); const daughters = person.children.filter(item => item.gender === 'F');
-  const relation = parentRelation(person, father, prefs.locale);
+  const brothers = siblings.filter(item => item.gender !== 'F');
+  const sisters = siblings.filter(item => item.gender === 'F');
+  const children = person.children || (husband ? husband.children : []);
+  const sons = children.filter(item => item.gender !== 'F');
+  const daughters = children.filter(item => item.gender === 'F');
+  const viewer = prefs.viewerId || tree.root.id;
+  const relation = isSpouse ? getRelation(viewer, id, tree, prefs.locale) : parentRelation(person, father, prefs.locale);
   const alt = alternateName(person, prefs.locale);
   main.innerHTML = `<div class="mobile-page">
     <p class="viewing-line">${t.viewing}: ${displayName(person, prefs.locale)}</p>
     <article class="person-head">
       ${photoMarkup(person, prefs.locale, 'hero-photo', true)}
       <h1 tabindex="-1">${displayName(person, prefs.locale)}</h1>${alt ? `<p>${alt}</p>` : ''}
-      <p>${years(person)}</p><p class="relation-label">${relation}</p>
+      <p>${years(person, prefs.locale)}</p><p class="relation-label">${relation}</p>
       ${isDeceased(person) ? `<p class="memory-label">${t.lovingMemory}</p>` : ''}
       ${prefs.locale === 'hi' ? (person.bioHindi ? `<p class="bio">${person.bioHindi}</p>` : '') : (person.bio ? `<p class="bio">${person.bio}</p>` : '')}
     </article>
-    ${listSection(t.father, father ? [father] : [], prefs.locale, t)}
-    ${listSection(t.brothers, brothers, prefs.locale, t)}
-    ${listSection(t.sisters, sisters, prefs.locale, t)}
-    ${listSection(t.sons, sons, prefs.locale, t)}
-    ${listSection(t.daughters, daughters, prefs.locale, t)}
+    ${husband ? listSection(prefs.locale === 'hi' ? 'पति' : 'Husband', [husband], prefs.locale, t) : ''}
+    ${person.spouses?.length ? listSection(t.wife, person.spouses, prefs.locale, t) : ''}
+    ${father ? listSection(t.father, [father], prefs.locale, t) : ''}
+    ${brothers.length ? listSection(t.brothers, brothers, prefs.locale, t) : ''}
+    ${sisters.length ? listSection(t.sisters, sisters, prefs.locale, t) : ''}
+    ${sons.length ? listSection(t.sons, sons, prefs.locale, t) : ''}
+    ${daughters.length ? listSection(t.daughters, daughters, prefs.locale, t) : ''}
   </div>`;
   bindCards(main);
 }

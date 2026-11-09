@@ -36,3 +36,48 @@ test('accepts branch and deceased status from CSV data', () => {
   assert.equal(result.errors.length, 0);
   assert.equal(result.value.members[0].isDeceased, true);
 });
+
+test('validates and normalizes full dob and dod dates', () => {
+  const input = structuredClone(phaseOne);
+  input.members[0].dob = '1913-05-15';
+  input.members[0].dod = '2000-11-20';
+  input.members[1].dob = '1960'; // year only
+  input.members[1].dod = null;
+  const result = validateFamily(input);
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.value.members[0].dob, '1913-05-15');
+  assert.equal(result.value.members[0].dod, '2000-11-20');
+  assert.equal(result.value.members[0].birthYear, 1913);
+  assert.equal(result.value.members[0].deathYear, 2000);
+  assert.equal(result.value.members[0].isDeceased, true);
+  assert.equal(result.value.members[1].birthYear, 1960);
+});
+
+test('rejects invalid dob or dod dates', () => {
+  const input = structuredClone(phaseOne);
+  input.members[0].dob = 'not-a-date';
+  const result = validateFamily(input);
+  assert.ok(result.errors.some(error => error.includes('dob must be a valid date')));
+});
+
+test('rejects dod before dob', () => {
+  const input = structuredClone(phaseOne);
+  input.members[0].dob = '1985-05-20';
+  input.members[0].dod = '1980-01-15';
+  const result = validateFamily(input);
+  assert.ok(result.errors.some(error => error.includes('death date cannot be before birth date')));
+});
+
+test('validates spouse with bilingual names and deceased status', () => {
+  const input = structuredClone(phaseOne);
+  input.members[1].spouses = [{
+    name: 'Swargiya Shrimati Kishna Devi',
+    nameHindi: 'स्वर्गीय श्रीमती किशना देवी',
+    isDeceased: true
+  }];
+  const result = validateFamily(input);
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.value.members[1].spouses[0].name, 'Swargiya Shrimati Kishna Devi');
+  assert.equal(result.value.members[1].spouses[0].nameHindi, 'स्वर्गीय श्रीमती किशना देवी');
+  assert.equal(result.value.members[1].spouses[0].isDeceased, true);
+});

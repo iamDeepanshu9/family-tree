@@ -23,13 +23,18 @@
   },
   "$defs": {
     "year": { "type": ["integer", "null"], "minimum": 1000, "maximum": 2200 },
+    "dateValue": { "type": ["string", "integer", "null"] },
     "spouse": {
       "type": "object",
       "required": ["name"],
       "additionalProperties": false,
       "properties": {
+        "id": { "type": "string" },
         "name": { "type": "string", "minLength": 1 },
         "nameHindi": { "type": "string" },
+        "gender": { "enum": ["M", "F"] },
+        "dob": { "$ref": "#/$defs/dateValue" },
+        "dod": { "$ref": "#/$defs/dateValue" },
         "birthYear": { "$ref": "#/$defs/year" },
         "deathYear": { "$ref": "#/$defs/year" },
         "isDeceased": { "type": "boolean" },
@@ -49,8 +54,12 @@
         "gender": { "enum": ["M", "F"] },
         "parentId": { "type": ["string", "null"] },
         "order": { "type": "integer", "minimum": 1 },
+        "dob": { "$ref": "#/$defs/dateValue" },
+        "dod": { "$ref": "#/$defs/dateValue" },
         "birthYear": { "$ref": "#/$defs/year" },
         "deathYear": { "$ref": "#/$defs/year" },
+        "isDeceased": { "type": "boolean" },
+        "branch": { "type": "string" },
         "photo": { "type": ["string", "null"] },
         "bio": { "type": "string" },
         "spouses": { "type": "array", "items": { "$ref": "#/$defs/spouse" } }

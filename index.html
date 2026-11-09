@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,13 +14,14 @@
   <meta property="og:image:height" content="630">
   <title>Jeev family — जीव वंशवृक्ष</title>
   <link rel="icon" href="img/logo.png" type="image/png">
-  <link rel="stylesheet" href="css/tokens.css?v=11">
-  <link rel="stylesheet" href="css/base.css?v=11">
-  <link rel="stylesheet" href="css/components.css?v=11">
-  <link rel="stylesheet" href="css/mobile.css?v=11">
-  <link rel="stylesheet" href="css/desktop.css?v=11">
-  <link rel="stylesheet" href="css/print.css?v=11" media="print">
+  <link rel="stylesheet" href="css/tokens.css?v=17">
+  <link rel="stylesheet" href="css/base.css?v=17">
+  <link rel="stylesheet" href="css/components.css?v=17">
+  <link rel="stylesheet" href="css/mobile.css?v=17">
+  <link rel="stylesheet" href="css/desktop.css?v=17">
+  <link rel="stylesheet" href="css/print.css?v=17" media="print">
 </head>
+
 <body>
   <a class="skip-link" href="#app-main">Skip to family tree</a>
   <header class="site-header">
@@ -28,16 +30,23 @@
       <span><strong id="family-title">Our family</strong><small id="family-summary">Loading family…</small></span>
     </a>
     <div class="header-tools">
-      <button id="language-toggle" class="language-toggle" type="button"><span data-label="language">Hindi</span></button>
-      <button id="settings-toggle" class="settings-toggle" type="button" aria-expanded="false" aria-controls="display-settings">Aa<span class="sr-only">Display settings</span></button>
-    </div>
-    <div id="display-settings" class="header-actions" aria-label="Display settings">
-      <div class="text-size" aria-label="Text size">
-        <button type="button" data-text-size="compact" aria-label="Smaller text">A−</button>
-        <button type="button" data-text-size="default" aria-label="Default text">A</button>
-        <button type="button" data-text-size="large" aria-label="Larger text">A+</button>
-      </div>
-      <button id="contrast-toggle" type="button" aria-pressed="false"><span aria-hidden="true">◐</span><span data-label="contrast">High contrast</span></button>
+      <button id="fullscreen-toggle" class="fullscreen-toggle" type="button" aria-label="Toggle full screen"
+        aria-pressed="false"><span aria-hidden="true" class="fullscreen-icon">⛶</span> <span
+          data-label="fullscreen">Full screen</span></button>
+      <button id="language-toggle" class="language-toggle" type="button"><span
+          data-label="language">Hindi</span></button>
+      <details id="display-settings-menu" class="display-settings-menu" open>
+        <summary id="settings-toggle" class="settings-toggle">Aa<span class="sr-only">Display settings</span></summary>
+        <div id="display-settings" class="header-actions" aria-label="Display settings">
+          <div class="text-size" aria-label="Text size">
+            <button type="button" data-text-size="compact" aria-label="Smaller text">A−</button>
+            <button type="button" data-text-size="default" aria-label="Default text">A</button>
+            <button type="button" data-text-size="large" aria-label="Larger text">A+</button>
+          </div>
+          <button id="contrast-toggle" type="button" aria-pressed="false"><span aria-hidden="true">◐</span><span
+              data-label="contrast">High contrast</span></button>
+        </div>
+      </details>
     </div>
   </header>
 
@@ -49,10 +58,12 @@
   </main>
 
   <nav class="mobile-nav" aria-label="Page navigation">
-    <button id="back-button" type="button"><span aria-hidden="true">←</span> <span data-label="back">Back</span></button>
+    <button id="back-button" type="button"><span aria-hidden="true">←</span> <span
+        data-label="back">Back</span></button>
     <a href="#/home"><span aria-hidden="true">⌂</span> <span data-label="home">Home</span></a>
   </nav>
   <div id="announcer" class="sr-only" aria-live="polite"></div>
-  <script type="module" src="js/app.js?v=11"></script>
+  <script type="module" src="js/app.js?v=17"></script>
 </body>
+
 </html>

@@ -4,6 +4,26 @@ export async function exportTreeAsPng(stage, filename = 'family-tree.png') {
   const width = Math.ceil(parseFloat(stage.style.width));
   const height = Math.ceil(parseFloat(stage.style.height));
   if (width > 12000 || height > 12000) throw new Error('This tree is too large for a PNG. Use Print / PDF instead.');
+
+  // Convert images to data URLs so foreignObject does not get blocked by canvas security
+  const imgs = clone.querySelectorAll('img');
+  await Promise.all([...imgs].map(async img => {
+    try {
+      const res = await fetch(img.src);
+      const blob = await res.blob();
+      const dataUri = await new Promise((resUri, rejUri) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resUri(reader.result);
+        reader.onerror = rejUri;
+        reader.readAsDataURL(blob);
+      });
+      img.src = dataUri;
+    } catch {
+      // If image fails to fetch, remove it so fallback avatar initials show cleanly
+      img.remove();
+    }
+  }));
+
   const styles = [...document.styleSheets].flatMap(sheet => {
     try { return [...sheet.cssRules].map(rule => rule.cssText); } catch { return []; }
   }).join('\n');

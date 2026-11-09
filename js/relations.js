@@ -1,6 +1,6 @@
 const WORDS = {
-  en: { self: 'You', father: 'Your father', son: 'Your son', daughter: 'Your daughter', brother: 'Your brother', sister: 'Your sister', grandfather: 'Your grandfather', grandmother: 'Your grandmother', grandson: 'Your grandson', granddaughter: 'Your granddaughter', uncle: "Your father's brother", elderUncle: 'Your elder paternal uncle', youngerUncle: 'Your younger paternal uncle', bua: 'Your bua', cousinBrother: 'Your cousin brother', cousinSister: 'Your cousin sister', ancestor: 'Your ancestor', descendant: 'Your descendant', relative: 'Your family relative' },
-  hi: { self: 'आप स्वयं', father: 'आपके पिता', son: 'आपके पुत्र', daughter: 'आपकी पुत्री', brother: 'आपके भाई', sister: 'आपकी बहन', grandfather: 'आपके दादा', grandmother: 'आपकी दादी', grandson: 'आपके पोते', granddaughter: 'आपकी पोती', uncle: 'आपके पिता के भाई', elderUncle: 'आपके ताऊ', youngerUncle: 'आपके चाचा', bua: 'आपकी बुआ', cousinBrother: 'आपके चचेरे भाई', cousinSister: 'आपकी चचेरी बहन', ancestor: 'आपके पूर्वज', descendant: 'आपके वंशज', relative: 'आपके पारिवारिक संबंधी' }
+  en: { self: 'You', father: 'Your father', mother: 'Your mother', son: 'Your son', daughter: 'Your daughter', brother: 'Your brother', sister: 'Your sister', grandfather: 'Your grandfather', grandmother: 'Your grandmother', grandson: 'Your grandson', granddaughter: 'Your granddaughter', uncle: "Your father's brother", elderUncle: 'Your elder paternal uncle', youngerUncle: 'Your younger paternal uncle', bua: 'Your bua', taiji: 'Your elder paternal aunt (Taiji)', chachi: 'Your younger paternal aunt (Chachi)', bhabhi: 'Your sister-in-law (Bhabhi)', daughterInLaw: 'Your daughter-in-law', wife: 'Your wife', cousinBrother: 'Your cousin brother', cousinSister: 'Your cousin sister', ancestor: 'Your ancestor', descendant: 'Your descendant', relative: 'Your family relative' },
+  hi: { self: 'आप स्वयं', father: 'आपके पिता', mother: 'आपकी माता', son: 'आपके पुत्र', daughter: 'आपकी पुत्री', brother: 'आपके भाई', sister: 'आपकी बहन', grandfather: 'आपके दादा', grandmother: 'आपकी दादी', grandson: 'आपके पोते', granddaughter: 'आपकी पोती', uncle: 'आपके पिता के भाई', elderUncle: 'आपके ताऊ', youngerUncle: 'आपके चाचा', bua: 'आपकी बुआ', taiji: 'आपकी ताई जी', chachi: 'आपकी चाची जी', bhabhi: 'आपकी भाभी', daughterInLaw: 'आपकी पुत्रवधू (बहू)', wife: 'आपकी पत्नी', cousinBrother: 'आपके चचेरे भाई', cousinSister: 'आपकी चचेरी बहन', ancestor: 'आपके पूर्वज', descendant: 'आपके वंशज', relative: 'आपके पारिवारिक संबंधी' }
 };
 
 function ageOrder(a, b) {
@@ -14,6 +14,26 @@ export function getRelation(viewerId, personId, tree, locale = 'en') {
   const viewer = tree.byId.get(viewerId) || tree.root;
   const person = tree.byId.get(personId);
   if (!person) return t.relative;
+
+  if (person.spouseOf) {
+    if (viewer.id === person.spouseOf) return t.wife;
+    if (viewer.parentId === person.spouseOf) return t.mother;
+    const husband = tree.byId.get(person.spouseOf);
+    if (!husband) return t.relative;
+    const viewerParent = tree.byId.get(viewer.parentId);
+    const viewerGrandparent = tree.byId.get(viewerParent?.parentId);
+    if (viewerGrandparent?.id === husband.id) return t.grandmother;
+    if (viewer.parentId && viewer.parentId === husband.parentId) return t.bhabhi;
+    if (viewerParent && husband.parentId === viewerParent.parentId) {
+      const order = ageOrder(husband, viewerParent);
+      return order === 'older' ? (t.taiji || t.relative) : (t.chachi || t.relative);
+    }
+    if (husband.parentId === viewer.id) return t.daughterInLaw;
+    if (viewer.ancestors?.includes(husband.id)) return t.ancestor;
+    if (husband.ancestors?.includes(viewer.id)) return t.descendant;
+    return t.relative;
+  }
+
   if (viewer.id === person.id) return t.self;
   if (viewer.parentId === person.id) return t.father;
   if (person.parentId === viewer.id) return person.gender === 'F' ? t.daughter : t.son;
